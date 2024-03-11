@@ -127,6 +127,31 @@ class SlurmManager():
         if os.path.exists('data/jobs.json'):
             with open('data/jobs.json', 'r') as f:
                 self.jobs = json.load(f)
+            # command = 'squeue -u mznv82 -o "%.18i %.9P %.8j %.8u %.2t %.10M %.6D %R"'
+            # result = cli(command)
+            
+            # lines = result.strip().split('\n')
+            # jobs_data = []
+            # for line in lines:
+            #     fields = line.split()
+            #     if len(fields) == 8:
+            #         job_dict = {
+            #             "id": fields[0],
+            #             "partition": fields[1],
+            #             "name": fields[2],
+            #             "user": fields[3],
+            #             "state": fields[4],
+            #             "time": fields[5],
+            #             "nodes": fields[6],
+            #             "nodelist": fields[7]
+            #         }
+                    
+            #         if job_dict["id"] != "JOBID":
+            #             jobs_data.append(job_dict)
+            
+            # jobs_data = {d['id']: d for d in jobs_data}
+            # self.jobs = jobs_data
+
         else:
             self.jobs = {}
 
@@ -191,6 +216,10 @@ class SlurmManager():
         print('submit message',o)
         if 'Submitted batch job ' in o:
             job_id = o.split('Submitted batch job ')[-1].replace(' ','').replace('\n','')
+            # line = cli("squeue -j " + job_id)
+            # fields = line.split()
+            # if len(fields) == 8:
+            #     self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc,'nodes':fields[6],'nodelist':fields[7],'partition':fields[1]}
             self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc}
             
             self.justSubmitted = job_id
@@ -219,8 +248,8 @@ def cli(command,return_err = False):
 def formatSinfo(sinfo):
     res = ''
     for line in sinfo.split('\n'):
-        if 'drain' in line:
-            continue
+        if 'drain' in line or 'alloc' in line:
+            line = f'<p style="color:#E83015">{line}'
         if 'idle' in line:
             line = f'<p style="color:#00e000">{line}'
         elif 'mix' in line:
@@ -243,7 +272,8 @@ def formatSacct(sacct):
 def generateJobList(jobs):
     res = '<tr><th>ID</th><th>Name</th><th>State</th><th>Time taken</th><th>Note</th></tr>'
     for job in jobs.values():
-        res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td></tr>'
+        if job["state"] == 'RUNNING' or job["state"] == 'PENDING':
+            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td></tr>'
     return res
 
         
