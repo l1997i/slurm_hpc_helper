@@ -1,0 +1,297 @@
+<!doctype html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
+<script>
+    var socket;
+    var selected;
+    $(document).ready(function() {
+        
+        $('#job_form').css('display', 'none');
+        for (const [key, value] of Object.entries(last_submit_form)) {
+            $('#job_form')[0][key].value = value
+        }
+
+        // Connect to the Socket.IO server.
+        // The connection URL has the following format, relative to the current page:
+        //     http[s]://<domain>:<port>[/<namespace>]
+        socket = io.connect('https://' + document.domain + ':' + location.port + '/');
+        socket.on('update', function(msg) {
+            for (const [key, value] of Object.entries(msg['html'])) {
+                $('#' + key).html(value);
+            }
+            makeSelectable();
+
+            for (const [key, value] of Object.entries(msg['html'])) {
+                if (!$('#' + key).hasClass('updated')) {
+                    OnFirstUpdate(key);
+                    $('#' + key).toggleClass('updated');
+                }
+            }
+        });
+        socket.on('select', function(msg) {
+            selected = msg;
+            sessionStorage.setItem('selected_job', selected);
+            selected = $('.selectable').filter((_, e) => {
+                return e.id == selected;
+            })
+            selected.click();
+            $('#job_scroll').scrollTop(selected.position().top - 25);
+        });
+    });
+
+    setInterval(() => {
+        socket.emit('update');
+    }, 3000);
+
+    function OnFirstUpdate(key) {
+        switch (key) {
+            case 'jobs':
+                if (sessionStorage.getItem('selected_job')){
+                    selected = $('.selectable').filter((_, e) => {
+                        return e.id == sessionStorage.getItem('selected_job');
+                    })
+                }
+                else {
+                    selected = $('.selectable').last();
+                }
+                selected.click();
+
+                $('#job_scroll').scrollTop(selected.position().top - 25);
+
+            case 'sacct':
+                OnPartitionChanged($("#partition_input")[0]);
+                break;
+        }
+
+    }
+
+    function OnItemSelected(element) {
+        selected = element;
+        sessionStorage.setItem('selected_job', element[0].id);
+        $('.selectable').removeClass('selected');
+        element.toggleClass('selected');
+        $('#job_script').html('Loading...');
+        $('#output').html('Loading...');
+        socket.emit('select_job', {
+            'job_id': sessionStorage.getItem('selected_job')
+        });
+    }
+
+    function makeSelectable() {
+        $('.selectable').click(function() {
+            $(this).toggleClass('selected');
+            OnItemSelected($(this));
+        });
+        $('.selectable').mouseover(function() {
+            $(this).toggleClass('hover');
+        });
+        $('.selectable').mouseleave(function() {
+            $(this).removeClass('hover');
+        });
+        $('.selectable').filter((_, e) => {
+            return e.id == sessionStorage.getItem('selected_job');
+        }).addClass('selected');
+    }
+
+
+    function toggle_job_form() {
+        if ($('#job_form').css('display') == 'none') {
+            $('#job_form').css('display', 'block');
+        } else {
+            $('#job_form').css('display', 'none');
+        }
+    }
+
+    function OnQoSChanged(e) {
+        switch (e.value) {
+            case 'short':
+                $("#time_input").val('2-00:00:00');
+                break;
+            case 'long-high-prio':
+                $("#time_input").val('7-00:00:00');
+                break;
+            case 'long-low-prio':
+                $("#time_input").val('7-00:00:00');
+                break;
+            case 'long-cpu':
+                $("#time_input").val('14-00:00:00');
+                break;
+            case 'debug':
+                $("#time_input").val('02:00:00');
+                break;
+        }
+    }
+
+        function OnPartitionChanged(e) {
+        switch (e.value) {
+            case 'infer':
+                $("#time_input").val('2-00:00:00');
+                break;
+            case 'gpu':
+                $("#time_input").val('2-00:00:00');
+                break;
+            case 'test':
+                $("#time_input").val('0-00:30:00');
+                break;
+            case 'ghlogin':
+                $("#time_input").val('0-08:00:00');
+                break;
+            case 'gh':
+                $("#time_input").val('2-00:00:00');
+                break;
+            case 'ghtest':
+                $("#time_input").val('00:30:00');
+                break;
+        }
+    }
+
+    function cancel() {
+        state = $('#' + sessionStorage.getItem('selected_job') + '>td')[2].innerText;
+        name = $('#' + sessionStorage.getItem('selected_job') + ">td")[1].innerText;
+        if (!(state == 'RUNNING' || state == 'PENDING')) {
+            return;
+        }
+        if (confirm(`Cancel job ${name}, id:${sessionStorage.getItem('selected_job')}?`)) {
+            socket.emit('cancel_job', {
+                'job_id': sessionStorage.getItem('selected_job')
+            });
+        }
+    }
+</script>
+<script>
+    last_submit_form = {{session.last_submit_form | tojson}}
+</script>
+<style>
+    input {
+        min-width: 100%;
+        border-color: #333;
+    }
+    
+    body {
+        height: 100%;
+        overflow-y: hidden;
+    }
+</style>
+
+{% extends 'base.html' %}
+
+<h1>{% block title %}Slurm{% endblock %}</h1>
+
+
+{% block content %}
+<div class="row">
+    <div class="column" style="min-width: 40%; overflow: scroll; max-height: 98vh; border: 3px solid #ccc;" id="job_scroll">
+
+        <div class="console" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;" id="job_scroll">
+            <table id="jobs">
+            </table>
+        </div>
+        <div class="console" id="sacct" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Loading</div>
+        <div class="console" id="sinfo" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Loading</div>
+        <div class="console" id="job_script" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your script will be shown here</div>
+        <div class="console " id="output" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your slurm output will be shown here</div>
+
+    </div>
+    <div class="column" style="flex: 10; min-width: 50%; overflow: scroll; max-height: 98vh; overflow-y: auto; border: 3px solid #ccc;">
+        <div class="console">
+            <h4> <strong>SUBMIT a job / CANCEL a job ... </strong> </h4>
+            <br>
+            <button onclick="toggle_job_form()">new</button>
+            <button onclick="cancel()">cancel</button>
+            <div id="add_job_form">
+                <form action="/slurm/submit_job" method="post" id="job_form">
+                    <table class="form_table">
+                        <tr>
+                            <td><label for="name">Name</label></td>
+                            <td><input type="text" name="name" placeholder="name" value="{{ htmldata.defaults.name }}" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH -A">#SBATCH -A</label></td>
+                            <td><select name="#SBATCH -A " placeholder="account" value="{{ htmldata.defaults.account }}"  type="text" style="font-size:14px;">
+                                <option value="ncc_users">NCC</option>
+                                <option value="bddur07">Bede</option>
+                                </select>
+                                </td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH -p">#SBATCH -p</label></td>
+                            <td><select name="#SBATCH -p " id="partition_input" type="text" onchange="OnPartitionChanged(this)" onload="OnPartitionChanged(this)" name="#SBATCH -p " style="font-size:14px;">
+                                <option value="res-gpu-small">[NCC] res-gpu-small</option>
+                                <option value="res-gpu-large">[NCC] res-gpu-large</option>
+                                <option value="gpu-bigmem">[NCC] gpu-bigmem</option>
+                                <option value="gpu-private">[NCC] gpu-toby0</option>
+                                <option value="cpu">[NCC] cpu</option>
+                                <option value="infer">[Bede] infer (cpu)</option>
+                                <option value="gpu">[Bede] gpu</option>
+                                <option value="test">[Bede] gpu test</option>
+                                <option value="gh">[Bede] gh (GH200)</option>
+                                <option value="ghlogin">[Bede] ghlogin (GH200)</option>
+                                <option value="ghtest">[Bede] ghtest (GH200)</option>
+                              </select>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --qos">#SBATCH --qos</label></td>
+                            <td><select name="#SBATCH --qos " id="qos_input" type="text" name="#SBATCH --qos " onchange="OnQoSChanged(this)" onload="OnQoSChanged(this)" style="font-size:14px;">
+                                <option value="short">[NCC] short</option>
+                                <option value="long-high-prio">[NCC] long-high-prio</option>
+                                <option value="long-low-prio">[NCC] long-low-prio</option>
+                                <option value="debug">[NCC] debug</option>
+                                <option value="long-cpu">[NCC] long-cpu</option>
+                                <option value="normal">[Bede] normal</option>
+                                <option value="test">[Bede] test</option>
+                                <option value="ghtest">[Bede] ghtest (GH200)</option>
+                              </select>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --nodes=">#SBATCH --nodes=</label></td>
+                            <td><input type="number" name="#SBATCH --nodes=" placeholder="1" value="1" required>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --nodelist=">#SBATCH --nodelist=</label></td>
+                            <td><input id="node_input" type="text" name="#SBATCH --nodelist=" placeholder="gpu0, gpu1, ..." value="">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --time=">#SBATCH --time=</label></td>
+                            <td><input id="time_input" type="text" name="#SBATCH --time=" placeholder="24:00:00" value="2-00:00:00" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label></td>
+                            <td><input type="number" name="#SBATCH --gres=gpu:" placeholder="gpu number; leave empty if cpu only" value="1"></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --cpus-per-task ">#SBATCH --cpus-per-task</label></td>
+                            <td><input type="text" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --chdir ">#SBATCH --chdir </label></td>
+                            <td><input type="text" name="#SBATCH --chdir " placeholder="working directory" value="/home2/{{ htmldata.defaults.account }}"></td>
+                        </tr>
+                        <tr>
+                            <td><label for="additional args">additional args</label></td>
+                            <td><input type="text" name="additional args" placeholder="--arg value" value=""></td>
+                        </tr>
+                        <tr>
+                            <td><label for="job_script">Job scripts</label></td>
+                            <td><textarea name="job_script" style="width:600px;height:300px;font-size: small;" form="job_form" placeholder="echo 'Hello world??'" required></textarea></td>
+                        </tr>
+                        
+
+
+                    </table>
+                    <input type="submit" value="submit">
+                    <p id="message"></p>
+                </form>
+            </div>
+            <br>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+{% endblock %}
