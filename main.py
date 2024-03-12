@@ -12,7 +12,8 @@ def run():
     app = create_app()
     socketio.init_app(app)
     app.secret_key = __import__('os').urandom(24)
-    socketio.run(app,debug=True,port=int(json.load(open('config.json'))["port"]),ssl_context='adhoc')
+    # socketio.run(app,debug=True,port=int(json.load(open('config.json'))["port"]),ssl_context='adhoc') # https will have NET::ERR_CERT_AUTHORITY_INVALID
+    socketio.run(app,debug=True,port=int(json.load(open('config.json'))["port"]))
 
 if __name__ == '__main__':
     run()

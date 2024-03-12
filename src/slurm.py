@@ -7,6 +7,7 @@ from . import socketio
 from flask_socketio import emit, join_room
 import json, os
 import re
+from datetime import datetime
 bp = Blueprint('slurm', __name__, url_prefix='/slurm')
 
 outputs = {}
@@ -37,11 +38,29 @@ def slurm():
     session['last_submit_form'] = last_submit_form 
     return render_template('slurm/slurm.html',htmldata=htmldata)
 
+@bp.route('/load_json_job', methods=['POST'])
+@login_required
+def loadJsonJob():
+    htmldata = json.load(open('config.json'))
+    htmldata["is_load"] = True
+    json_path = request.form['load_json_path']
+    if os.path.exists(json_path) and json_path.endswith('.json'):
+        last_submit_form = json.load(open(json_path))
+        session['last_submit_form'] = last_submit_form 
+
+    else:
+        socketio.emit('update', {'html':{'message':'ERROR: json file not exsit!'}},to='slurm')
+    return render_template('slurm/slurm.html',htmldata=htmldata)
+
 @bp.route('/submit_job', methods=['POST'])
 @login_required
 def submitJob():
-    script_loc = 'data/job_scripts/'+int(time.time()).__str__()+'.sh'
-    output_loc =  relative_to_root('data/outputs/'+int(time.time()).__str__())
+    time_dir = int(time.time()).__str__()
+    wk_dir = request.form['#SBATCH --chdir ']
+    os.makedirs(os.path.join(wk_dir, '.logs/job_scripts', time_dir), exist_ok=True)
+    script_loc = os.path.join(wk_dir, '.logs/job_scripts', time_dir, time_dir+'.sh')
+    output_loc =  relative_to_root(os.path.join(wk_dir, '.logs/outputs/', time_dir))
+    json_setting_loc = os.path.join(wk_dir, '.logs/job_scripts', time_dir, time_dir+'.json')
     sshd_sh_loc = 'src/templates/bash/sshd.sh'
     code_sh_loc = 'src/templates/bash/code_tunnel.sh'
     final_sh_loc = 'src/templates/bash/final_stage.sh'
@@ -76,6 +95,8 @@ def submitJob():
     socketio.start_background_task(manager.submitJob, name, job_script, script_loc, output_loc, request.form['additional args'])
 
     last_submit_form = request.form
+    with open(json_setting_loc, 'w') as file:
+        json.dump(last_submit_form, file)
     json.dump(last_submit_form, open('last_submit_form.json','w'))
 
     return ('', 204)
@@ -235,14 +256,15 @@ class SlurmManager():
         print('command: ',command)
         o, err = cli(command,True)
         socketio.emit('update', {'html':{'message':o +'\n'+ err}},to='slurm')
-        print('submit message',o)
         if 'Submitted batch job ' in o:
             job_id = o.split('Submitted batch job ')[-1].replace(' ','').replace('\n','')
             self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc}
             self.justSubmitted = job_id
-        else: 
-            print("submit failed!")
-            print(o)
+            
+        wk_script_directory = os.path.dirname(script_loc)
+        wk_job_path = os.path.join(wk_script_directory, "job_info.json")
+        with open(os.path.join(wk_job_path), 'w') as f:
+            json.dump(self.jobs[job_id],f)
         with open('data/jobs.json', 'w') as f:
             json.dump(self.jobs,f)
 
@@ -299,10 +321,12 @@ def formatSacct(sacct):
     return res
 
 def generateJobList(jobs):
-    res = '<tr><th>JOBID</th><th>Name</th><th>State</th></tr>'
+    res = '<tr><th>JOBID</th><th>Name</th><th>State</th><th>Timestamp</th><th>SubmitOn</th></tr>'
     for job in jobs.values():
         if job["state"] == 'RUNNING' or job["state"] == 'PENDING':
-            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td></tr>'
+            timestamp = os.path.basename(job["output"])
+            dt = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{timestamp}</td><td>{dt}</td></tr>'
     return res
 
 manager = SlurmManager()

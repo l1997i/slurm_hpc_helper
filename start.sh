@@ -1,4 +1,4 @@
 . ~/.bashrc
-conda activate tool
+conda activate slurmgui
 python main.py
 
