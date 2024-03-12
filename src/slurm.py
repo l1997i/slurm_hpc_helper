@@ -58,9 +58,14 @@ def loadJsonJob():
 def submitJob():
     time_dir = int(time.time()).__str__()
     wk_dir = request.form['#SBATCH --chdir ']
+    raw_addi_args = request.form['additional args']
+    if os.path.exists(wk_dir):
+        cli(f"cd {wk_dir}")
+    else:
+        socketio.emit('update', {'html':{'message':'ERROR: working dir (--chdir) not exsit!'}},to='slurm')
+        return ('', 204)
     os.makedirs(os.path.join(wk_dir, '.logs/job_scripts', time_dir), exist_ok=True)
     script_loc = os.path.join(wk_dir, '.logs/job_scripts', time_dir, time_dir+'.sh')
-    output_loc =  relative_to_root(os.path.join(wk_dir, '.logs/outputs/', time_dir))
     json_setting_loc = os.path.join(wk_dir, '.logs/job_scripts', time_dir, time_dir+'.json')
     sshd_sh_loc = 'src/templates/bash/sshd.sh'
     code_sh_loc = 'src/templates/bash/code_tunnel.sh'
@@ -68,10 +73,13 @@ def submitJob():
     name = request.form['name']
     job_script='#!/bin/bash\n#--------------------------------\n'
     job_script +=f"#SBATCH -J {request.form['name']}\n"
-    job_script +=f"#SBATCH --output={output_loc}\n"
     for k,v in request.form.items():
         if '#SBATCH' in k and v: 
             job_script += f'{k}{v}\n'
+    if raw_addi_args:
+        addi_args = raw_addi_args.split(";")
+        for kv in addi_args:
+            job_script +=f"#SBATCH {kv}\n"
     job_script += '#--------------------------------\n'
     
     code_enabled = 'interactive_code' in request.form
@@ -93,7 +101,7 @@ def submitJob():
             bash_script_content = file.read()
         job_script += '\n'+ bash_script_content
         job_script += '\n'+ 'wait'
-    socketio.start_background_task(manager.submitJob, name, job_script, script_loc, output_loc, request.form['additional args'])
+    socketio.start_background_task(manager.submitJob, name, time_dir, wk_dir, job_script, script_loc, request.form['additional args'])
 
     last_submit_form = request.form
     with open(json_setting_loc, 'w') as file:
@@ -210,7 +218,7 @@ class SlurmManager():
     def Update(self):
         sinfo = cli('sinfo')
         sacct_all = cli('sacct')
-        sacct = cli('squeue -u $(whoami) | awk \'{printf "%-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s\\n", $1, $2, $3, $4, $5, $6, $7, $8, $9}\'')
+        sacct = cli('squeue -u $(whoami)')
         
         for id in outputs.keys():
             if self.jobs[id]['state'] == 'RUNNING'or self.jobs[id]['state'] == 'PENDING':
@@ -245,29 +253,45 @@ class SlurmManager():
         else:
             scripts[job_id] = 'missing'
 
-    def submitJob(self,name, job_script,script_loc,output_loc, additional_args = ''):
+    def submitJob(self,name, ts,wk_dir, job_script,script_loc, additional_args = ''):
         print('submit' ,name)
         os.makedirs(os.path.dirname(script_loc),exist_ok=True)
-        os.makedirs(os.path.dirname(output_loc),exist_ok=True)
+        # os.makedirs(os.path.dirname(output_loc),exist_ok=True)
         with open(script_loc,'w') as f:
             f.write(job_script.replace('\r\n','\n'))
         os.chmod(script_loc, 0o777)
         
-        command = f'sbatch {additional_args} {script_loc}'
+        command = f'sbatch {script_loc}'
         print('command: ',command)
         o, err = cli(command,True)
         socketio.emit('update', {'html':{'message':o +'\n'+ err}},to='slurm')
         if 'Submitted batch job ' in o:
             job_id = o.split('Submitted batch job ')[-1].replace(' ','').replace('\n','')
-            self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc}
+            old_script_loc = script_loc
+            old_json_loc = old_script_loc.replace(".sh", ".json")
+            script_loc = old_script_loc.replace(ts, job_id)
+            json_loc = script_loc.replace(".sh", ".json")
+            output_loc = os.path.join(wk_dir, 'slurm-' + job_id + '.out')
+            if os.path.exists(os.path.dirname(old_script_loc)):
+                # Rename the old directory to the new directory
+                old_script_dir = os.path.dirname(old_script_loc)
+                script_dir = os.path.dirname(script_loc)
+                os.rename(old_script_dir, script_dir)
+                
+                # Rename the old file to the new file
+                old_script_loc = os.path.join(script_dir, ts+".sh")
+                old_json_loc = os.path.join(script_dir, ts+".json")
+                os.rename(old_script_loc, script_loc)
+                os.rename(old_json_loc, json_loc)
+                
+            self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc,'ts':ts}
             self.justSubmitted = job_id
-            
-        wk_script_directory = os.path.dirname(script_loc)
-        wk_job_path = os.path.join(wk_script_directory, "job_info.json")
-        with open(os.path.join(wk_job_path), 'w') as f:
-            json.dump(self.jobs[job_id],f)
-        with open('data/jobs.json', 'w') as f:
-            json.dump(self.jobs,f)
+            wk_script_directory = os.path.dirname(script_loc)
+            wk_job_path = os.path.join(wk_script_directory, "job_info.json")
+            with open(os.path.join(wk_job_path), 'w') as f:
+                json.dump(self.jobs[job_id],f)
+            with open('data/jobs.json', 'w') as f:
+                json.dump(self.jobs,f)
 
     def cancelJob(self,job_id):
         o = cli(f'scancel {job_id}')
@@ -292,13 +316,13 @@ def formatSinfo(sinfo):
             fields = line.split()
             l = "<tr>"
             for f in fields:
-                if 'drain' in f or 'alloc' in f:
+                if 'drain' in f or 'alloc' in f or 'down' in f or 'drng' in f:
                     l += f'<td style="color:#FE5F58">{f}</td>'
                     continue
                 if 'idle' in f:
                     l += f'<td style="color:#28C73F">{f}</td>'
                     continue
-                elif 'mix' in f:
+                elif 'mix' in f or 'comp' in f:
                     l += f'<td style="color:#FEBB2C">{f}</td>'
                     continue
                 else:
@@ -322,12 +346,12 @@ def formatSacct(sacct):
     return res
 
 def generateJobList(jobs):
-    res = '<tr><th>JOBID</th><th>Name</th><th>State</th><th>Timestamp</th><th>SubmitOn</th></tr>'
+    res = '<tr><th>JOBID</th><th>Name</th><th>State</th><th>SubmitOn</th></tr>'
     for job in jobs.values():
         if job["state"] == 'RUNNING' or job["state"] == 'PENDING':
-            timestamp = os.path.basename(job["output"])
+            timestamp = os.path.basename(job["ts"])
             dt = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
-            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{timestamp}</td><td>{dt}</td></tr>'
+            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td></tr>'
     return res
 
 manager = SlurmManager()

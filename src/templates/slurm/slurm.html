@@ -120,7 +120,10 @@ function toggle_load_job_form() {
                 $("#time_input").val('2-00:00:00');
                 break;
             case 'long-high-prio':
-                $("#time_input").val('7-00:00:00');
+                $("#time_input").val('8-00:00:00');
+                break;
+            case 'mznv82-qos':
+                $("#time_input").val('3-00:00:00');
                 break;
             case 'long-low-prio':
                 $("#time_input").val('7-00:00:00');
@@ -192,19 +195,19 @@ function toggle_load_job_form() {
 
 {% block content %}
 <div class="row">
-    <div class="column" style="min-width: 40%; overflow: scroll; max-height: 85vh; border: 3px solid #ccc;" id="job_scroll">
+    <div class="column" style="min-width: 45%; overflow: auto; max-height: 85vh; border: 3px solid #ccc;" id="job_scroll">
 
-        <div class="console" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;" id="job_scroll">
+        <div class="console" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;" id="job_scroll">
             <table id="jobs">
             </table>
         </div>
-        <div class="console" id="sacct" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Loading</div>
-        <div class="console" id="sinfo" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Loading</div>
-        <div class="console" id="job_script" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your script will be shown here</div>
-        <div class="console " id="output" style="min-width: 40%; overflow: scroll; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your slurm output will be shown here</div>
+        <div class="console" id="sacct" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Loading</div>
+        <div class="console" id="sinfo" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Loading</div>
+        <div class="console" id="job_script" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your script will be shown here</div>
+        <div class="console " id="output" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your slurm output will be shown here</div>
 
     </div>
-    <div class="column" style="flex: 10; min-width: 50%; overflow: scroll; max-height: 85vh; overflow-y: auto; border: 3px solid #ccc;">
+    <div class="column" style="flex: 10; min-width: 50%; overflow: auto; max-height: 85vh; overflow-y: auto; border: 3px solid #ccc;">
         <div class="console">
             <h4> <strong>SUBMIT a job / CANCEL a job ... </strong> </h4>
             <br>
@@ -248,6 +251,7 @@ function toggle_load_job_form() {
                                 <option value="short">[NCC] short</option>
                                 <option value="long-high-prio">[NCC] long-high-prio</option>
                                 <option value="long-low-prio">[NCC] long-low-prio</option>
+                                <option value="mznv82-qos">[NCC] mznv82-qos</option>
                                 <option value="debug">[NCC] debug</option>
                                 <option value="long-cpu">[NCC] long-cpu</option>
                                 <option value="normal">[Bede] normal</option>
@@ -291,10 +295,10 @@ function toggle_load_job_form() {
                         </tr>
                         <tr>
                             <td><label for="additional args">additional args</label></td>
-                            <td><input type="text" name="additional args" placeholder="--arg value" value=""></td>
+                            <td><input type="text" name="additional args" placeholder="--arg1 value1; --arg2 value2; --arg3" value=""></td>
                         </tr>
                         <tr>
-                            <td><label for="job_script">job scripts</label></td>
+                            <td><label for="job_script"><strong>job scripts</strong></label></td>
                             <td><textarea name="job_script" style="width:600px;height:300px;font-size: small;" form="job_form" placeholder="echo 'Hello world??'" required></textarea></td>
                         </tr>
                         <tr>
