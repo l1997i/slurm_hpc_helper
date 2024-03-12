@@ -215,20 +215,20 @@ function toggle_load_job_form() {
                 <form action="/slurm/submit_job" method="post" id="job_form">
                     <table class="form_table">
                         <tr>
-                            <td><label for="name">Name</label></td>
+                            <td><label for="name"><strong>Job name</strong></label></td>
                             <td><input type="text" name="name" placeholder="name" value="{{ htmldata.defaults.name }}" required></td>
                         </tr>
                         <tr>
-                            <td><label for="#SBATCH -A">#SBATCH -A</label></td>
-                            <td><select name="#SBATCH -A " placeholder="account" value="{{ htmldata.defaults.account }}"  type="text" style="font-size:14px;">
+                            <td><label for="#SBATCH -A"><strong>#SBATCH -A</strong></label></td>
+                            <td><select name="#SBATCH -A " placeholder="account" value="{{ htmldata.defaults.account }}"  type="text" style="font-size:14px;" required>
                                 <option value="ncc_users">NCC</option>
                                 <option value="bddur07">Bede</option>
                                 </select>
                                 </td>
                         </tr>
                         <tr>
-                            <td><label for="#SBATCH -p">#SBATCH -p</label></td>
-                            <td><select name="#SBATCH -p " id="partition_input" type="text" onchange="OnPartitionChanged(this)" onload="OnPartitionChanged(this)" name="#SBATCH -p " style="font-size:14px;">
+                            <td><label for="#SBATCH -p"><strong>#SBATCH -p</strong></label></td>
+                            <td><select name="#SBATCH -p " id="partition_input" type="text" onchange="OnPartitionChanged(this)" onload="OnPartitionChanged(this)" name="#SBATCH -p " style="font-size:14px;" required>
                                 <option value="res-gpu-small">[NCC] res-gpu-small</option>
                                 <option value="res-gpu-large">[NCC] res-gpu-large</option>
                                 <option value="gpu-bigmem">[NCC] gpu-bigmem</option>
@@ -243,8 +243,8 @@ function toggle_load_job_form() {
                               </select>
                         </tr>
                         <tr>
-                            <td><label for="#SBATCH --qos">#SBATCH --qos</label></td>
-                            <td><select name="#SBATCH --qos " id="qos_input" type="text" name="#SBATCH --qos " onchange="OnQoSChanged(this)" onload="OnQoSChanged(this)" style="font-size:14px;">
+                            <td><label for="#SBATCH --qos"><strong>#SBATCH --qos</strong></label></td>
+                            <td><select name="#SBATCH --qos " id="qos_input" type="text" name="#SBATCH --qos " onchange="OnQoSChanged(this)" onload="OnQoSChanged(this)" style="font-size:14px;" required>
                                 <option value="short">[NCC] short</option>
                                 <option value="long-high-prio">[NCC] long-high-prio</option>
                                 <option value="long-low-prio">[NCC] long-low-prio</option>
@@ -256,9 +256,29 @@ function toggle_load_job_form() {
                               </select>
                         </tr>
                         <tr>
-                            <td><label for="#SBATCH --nodes=">#SBATCH --nodes=</label></td>
+                            <td><label for="#SBATCH --nodes="><strong>#SBATCH --nodes=</strong></label></td>
                             <td><input type="number" name="#SBATCH --nodes=" placeholder="1" value="1" required>
                             </td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --time="><strong>#SBATCH --time=</strong></label></td>
+                            <td><input id="time_input" type="text" name="#SBATCH --time=" placeholder="24:00:00" value="2-00:00:00" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --chdir "><strong>#SBATCH --chdir </strong></label></td>
+                            <td><input type="text" name="#SBATCH --chdir " placeholder="working directory" value="{{ htmldata.defaults.home_folder }}" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label></td>
+                            <td><input type="text" name="#SBATCH --gres=gpu:" placeholder="gpu number; leave empty if cpu only" value="1"></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --cpus-per-task ">#SBATCH --cpus-per-task</label></td>
+                            <td><input type="number" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="#SBATCH --mem=">#SBATCH --mem=</label></td>
+                            <td><input id="mem_input" type="text" name="#SBATCH --mem=" placeholder="CPU memory" value="20g"></td>
                         </tr>
                         <tr>
                             <td><label for="#SBATCH --nodelist=">#SBATCH --nodelist=</label></td>
@@ -266,20 +286,8 @@ function toggle_load_job_form() {
                             </td>
                         </tr>
                         <tr>
-                            <td><label for="#SBATCH --time=">#SBATCH --time=</label></td>
-                            <td><input id="time_input" type="text" name="#SBATCH --time=" placeholder="24:00:00" value="2-00:00:00" required></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label></td>
-                            <td><input type="number" name="#SBATCH --gres=gpu:" placeholder="gpu number; leave empty if cpu only" value="1"></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --cpus-per-task ">#SBATCH --cpus-per-task</label></td>
-                            <td><input type="text" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4" required></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --chdir ">#SBATCH --chdir </label></td>
-                            <td><input type="text" name="#SBATCH --chdir " placeholder="working directory" value="{{ htmldata.defaults.home_folder }}" required></td>
+                            <td><label for="#SBATCH --exclude=">#SBATCH --exclude=</label></td>
+                            <td><input id="exclude_input" type="text" name="#SBATCH --exclude=" placeholder="exclude nodes, e.g., gpu[0-6]" value=""></td>
                         </tr>
                         <tr>
                             <td><label for="additional args">additional args</label></td>

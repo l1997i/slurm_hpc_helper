@@ -43,7 +43,7 @@ def slurm():
 def loadJsonJob():
     htmldata = json.load(open('config.json'))
     htmldata["is_load"] = True
-    json_path = request.form['load_json_path']
+    json_path = os.path.expanduser(request.form['load_json_path'])
     if os.path.exists(json_path) and json_path.endswith('.json'):
         last_submit_form = json.load(open(json_path))
         session['last_submit_form'] = last_submit_form 
