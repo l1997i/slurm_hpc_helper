@@ -190,6 +190,15 @@ h4 {
     display: flex;
 }
 
+.footer-text {
+    min-width: 100%;
+    max-height: 15px;
+    text-align: center;
+    font-size: small;
+    margin-top: 20px;
+}
+
+
 .column {
     flex: 50%;
     margin: 0px 30px 0px 30px;
