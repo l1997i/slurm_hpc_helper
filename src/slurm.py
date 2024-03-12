@@ -42,6 +42,9 @@ def slurm():
 def submitJob():
     script_loc = 'data/job_scripts/'+int(time.time()).__str__()+'.sh'
     output_loc =  relative_to_root('data/outputs/'+int(time.time()).__str__())
+    sshd_sh_loc = 'src/templates/bash/sshd.sh'
+    code_sh_loc = 'src/templates/bash/code_tunnel.sh'
+    final_sh_loc = 'src/templates/bash/final_stage.sh'
     name = request.form['name']
     job_script='#!/bin/bash\n#--------------------------------\n'
     job_script +=f"#SBATCH -J {request.form['name']}\n"
@@ -50,7 +53,26 @@ def submitJob():
         if '#SBATCH' in k and v: 
             job_script += f'{k}{v}\n'
     job_script += '#--------------------------------\n'
-    job_script += '\n'+request.form['job_script']
+    
+    code_enabled = 'interactive_code' in request.form
+    sshd_enabled = 'interactive_sshd' in request.form
+    final_stage_enabled = 'final_stage'  in request.form
+    if code_enabled:
+        with open(code_sh_loc, 'r') as file:
+            bash_script_content = file.read()
+        job_script += '\n'+ bash_script_content
+    if sshd_enabled:
+        with open(sshd_sh_loc, 'r') as file:
+            bash_script_content = file.read()
+        job_script += '\n'+ bash_script_content
+        
+    job_script += '\n###########################  <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
+    job_script += '\n'+ request.form['job_script']
+    if final_stage_enabled:
+        with open(final_sh_loc, 'r') as file:
+            bash_script_content = file.read()
+        job_script += '\n'+ bash_script_content
+        job_script += '\n'+ 'wait'
     socketio.start_background_task(manager.submitJob, name, job_script, script_loc, output_loc, request.form['additional args'])
 
     last_submit_form = request.form
@@ -216,12 +238,7 @@ class SlurmManager():
         print('submit message',o)
         if 'Submitted batch job ' in o:
             job_id = o.split('Submitted batch job ')[-1].replace(' ','').replace('\n','')
-            # line = cli("squeue -j " + job_id)
-            # fields = line.split()
-            # if len(fields) == 8:
-            #     self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc,'nodes':fields[6],'nodelist':fields[7],'partition':fields[1]}
             self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc}
-            
             self.justSubmitted = job_id
         else: 
             print("submit failed!")
@@ -246,35 +263,46 @@ def cli(command,return_err = False):
         return out[0].decode("latin-1")
     
 def formatSinfo(sinfo):
-    res = ''
-    for line in sinfo.split('\n'):
-        if 'drain' in line or 'alloc' in line:
-            line = f'<p style="color:#E83015">{line}'
-        if 'idle' in line:
-            line = f'<p style="color:#00e000">{line}'
-        elif 'mix' in line:
-            line = f'<p style="color:yellow">{line}'
-        else: line = f'<p style="color:#dddddd">{line}'
+    res = '<tr><th>Partition</th><th>Availability</th><th>Timelimit</th><th>Nodes</th><th>State</th><th>Nodelist</th></tr>'
+    for idx, line in enumerate(sinfo.split('\n')):
+        if idx:
+            fields = line.split()
+            l = "<tr>"
+            for f in fields:
+                if 'drain' in f or 'alloc' in f:
+                    l += f'<td style="color:#FE5F58">{f}</td>'
+                    continue
+                if 'idle' in f:
+                    l += f'<td style="color:#28C73F">{f}</td>'
+                    continue
+                elif 'mix' in f:
+                    l += f'<td style="color:#FEBB2C">{f}</td>'
+                    continue
+                else:
+                    l += f'<td>{f}</td>'
+                    continue
+            l += "</tr>"
+            res += l
         res += line
     return res 
 
 def formatSacct(sacct):
-    res = ''
-    for line in sacct.split('\n'):
-        if 'RUNNING' in line:
-            line = f'<p style="color:#00e000">{line}'
-        elif 'PENDING' in line:
-            line = f'<p style="color:yellow">{line}'
-        else: line = f'<p style="color:#dddddd">{line}'
-        res += line
+    res = '<tr><th>JOBID</th><th>Partition</th><th>Name</th><th>User</th><th>ST</th><th>Time</th><th>Nodes</th><th>Nodelist</th></tr>'
+    for idx, line in enumerate(sacct.split('\n')):
+        if idx:
+            fields = line.split()
+            l = "<tr>"
+            for f in fields:
+                l += f'<td>{f}</td>'
+            l += "</tr>"
+            res += l
     return res
 
 def generateJobList(jobs):
-    res = '<tr><th>ID</th><th>Name</th><th>State</th><th>Time taken</th><th>Note</th></tr>'
+    res = '<tr><th>JOBID</th><th>Name</th><th>State</th></tr>'
     for job in jobs.values():
         if job["state"] == 'RUNNING' or job["state"] == 'PENDING':
             res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td></tr>'
     return res
 
-        
 manager = SlurmManager()

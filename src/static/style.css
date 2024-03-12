@@ -1,23 +1,24 @@
 body {
-    background-color: black;
+    background-color: #282A36;
     color: #ffffff;
     font-family: "Raleway", "Microsoft JhengHei";
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     margin: 50px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://i.imgur.com/pkiX69L.jpeg");
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+    /* background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://i.imgur.com/pkiX69L.jpeg"); */
 }
 
 input,
 textarea {
-    background-color: #000000;
+    background-color: #282A36;
     color: #ffffff;
 }
 
 button,
 select {
-    background-color: #00133b;
+    background-color: #282A36;
     color: #ffffff;
     font-family: "Raleway", "Microsoft JhengHei";
     border: 1px solid #ffffff6c;
@@ -90,7 +91,7 @@ input {
 .console {
     padding: 10px;
     margin: 10px;
-    background-color: rgba(0, 0, 0, 0.603);
+    background-color: #282A36;
     font-family: Consolas, 'Courier New', Courier;
     font-size: 14px;
     line-height: 1.3em;
