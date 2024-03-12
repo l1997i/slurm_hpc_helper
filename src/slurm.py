@@ -47,10 +47,11 @@ def loadJsonJob():
     if os.path.exists(json_path) and json_path.endswith('.json'):
         last_submit_form = json.load(open(json_path))
         session['last_submit_form'] = last_submit_form 
+        return render_template('slurm/slurm.html',htmldata=htmldata)
 
     else:
-        socketio.emit('update', {'html':{'message':'ERROR: json file not exsit!'}},to='slurm')
-    return render_template('slurm/slurm.html',htmldata=htmldata)
+        socketio.emit('update', {'html':{'message_json':'ERROR: json file not exsit!'}},to='slurm')
+    return ('', 204)
 
 @bp.route('/submit_job', methods=['POST'])
 @login_required
