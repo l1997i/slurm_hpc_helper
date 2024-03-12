@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 job_script.sh"
+    exit 1
+fi
+
+JOB_SCRIPT="$1"
+BACKUP_DIR=$(pwd)
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+output=$(sbatch "${JOB_SCRIPT}")
+
+job_id=$(echo $output | awk '{print $NF}')
+
+if [ -z "$job_id" ]; then
+  exit 1
+fi
+
+mkdir -p ${BACKUP_DIR}/.logs/slurm/${job_id}
+
+echo "Submitted job with ID: $job_id"
+
+BACKUP_SCRIPT="${BACKUP_DIR}/.logs/slurm/${job_id}/$(basename ${JOB_SCRIPT})"
+cp "${JOB_SCRIPT}" "${BACKUP_SCRIPT}"
+
+echo "Job script backed up as: ${BACKUP_SCRIPT}"
