@@ -2,9 +2,9 @@
 receipt_addr="i@luisli.org"
 host=$(hostname -s)
 date=$(date "+%Y%m%d%H%M%S")
-mkdir -p /home2/$(whoami)/.jobs/${date}_${SLURM_JOB_ID}
+mkdir -p ~/.jobs/${date}_${SLURM_JOB_ID}
 mkdir -p .logs/runner/${SLURM_JOB_ID}
-nohup code tunnel --accept-server-license-terms --name "${host}-${SLURM_JOB_ID}" --cli-data-dir /home2/$(whoami)/.jobs/${date}_${SLURM_JOB_ID} > .logs/runner/${SLURM_JOB_ID}/runner-${SLURM_JOB_ID}.log 2>&1 &
+nohup code tunnel --accept-server-license-terms --name "${host}-${SLURM_JOB_ID}" --cli-data-dir ~/.jobs/${date}_${SLURM_JOB_ID} > .logs/runner/${SLURM_JOB_ID}/runner-${SLURM_JOB_ID}.log 2>&1 &
 server_pid=$!
 content="Slurm job name: ${SLURM_JOB_NAME}. 
 Online dev: https://vscode.dev/tunnel/${host}-${SLURM_JOB_ID}$(pwd). 

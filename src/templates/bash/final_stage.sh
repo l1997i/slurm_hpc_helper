@@ -3,7 +3,7 @@ source /etc/profile
 source ~/anaconda3/etc/profile.d/conda.sh
 module load cuda/11.1
 conda activate virconv
-cd /home2/mznv82/second-stage/tools
+cd ~/second-stage/tools
 pwd
 nohup python3 train.py --cfg_file cfgs/models/kitti/VirConv-T.yaml  > /dev/null &
 final_pid=$!
