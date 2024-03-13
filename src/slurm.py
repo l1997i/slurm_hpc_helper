@@ -57,7 +57,7 @@ def loadJsonJob():
 @login_required
 def submitJob():
     time_dir = int(time.time()).__str__()
-    wk_dir = request.form['#SBATCH --chdir ']
+    wk_dir = os.path.expanduser(request.form['#SBATCH --chdir '])
     raw_addi_args = request.form['additional args']
     if os.path.exists(wk_dir):
         cli(f"cd {wk_dir}")
@@ -221,15 +221,22 @@ class SlurmManager():
         sacct = cli('squeue -u $(whoami)')
         
         for id in outputs.keys():
-            if self.jobs[id]['state'] == 'RUNNING'or self.jobs[id]['state'] == 'PENDING':
+            if self.jobs[id]['state'] == 'R' or self.jobs[id]['state'] == 'PD':
                 self.UpdateOutput(id)
 
         for id in self.jobs.keys():
-            if self.jobs[id]['state'] == 'RUNNING' or self.jobs[id]['state'] == 'PENDING':
-                for line in sacct_all.split('\n'):
-                    if len(re.findall("[0-9]+ ",line))>0 and re.findall("[0-9]+ ",line)[0][:-1] == id:
-                        self.jobs[id]['state'] = list(filter(lambda x: x!='', line.split(' ')))[5]
-                        self.UpdateOutput(id)
+            if self.jobs[id]['state'] == 'R' or self.jobs[id]['state'] == 'PD':
+                is_id_in_line = 0 # NOT in Lines
+                for line in sacct.split("\n"):
+                    if id in line:
+                        columns = line.split()
+                        self.jobs[id]['node'] = columns[-1]
+                        self.jobs[id]['state'] = columns[4]
+                        is_id_in_line = 1
+                if not is_id_in_line:
+                    self.jobs[id]['state'] = 'CP'  # CP for COMPLETED
+                self.UpdateOutput(id)
+                    
 
         self.update_content = {
             'html': # Update html content
@@ -284,7 +291,7 @@ class SlurmManager():
                 os.rename(old_script_loc, script_loc)
                 os.rename(old_json_loc, json_loc)
                 
-            self.jobs[job_id]={'id':job_id,'name':name,'state':'PENDING','script':script_loc,'output':output_loc,'ts':ts}
+            self.jobs[job_id]={'id':job_id,'name':name,'state':'PD','script':script_loc,'output':output_loc,'ts':ts,'node':'UNKNOWN'}
             self.justSubmitted = job_id
             wk_script_directory = os.path.dirname(script_loc)
             wk_job_path = os.path.join(wk_script_directory, "job_info.json")
@@ -346,12 +353,12 @@ def formatSacct(sacct):
     return res
 
 def generateJobList(jobs):
-    res = '<tr><th>JOBID</th><th>Name</th><th>State</th><th>SubmitOn</th></tr>'
+    res = '<tr><th>JOBID</th><th>Nodelist</th><th>Name</th><th>State</th><th>SubmitOn</th></tr>'
     for job in jobs.values():
-        if job["state"] == 'RUNNING' or job["state"] == 'PENDING':
+        if job["state"] == 'R' or job["state"] == 'PD':
             timestamp = os.path.basename(job["ts"])
             dt = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
-            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td></tr>'
+            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["node"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td></tr>'
     return res
 
 manager = SlurmManager()

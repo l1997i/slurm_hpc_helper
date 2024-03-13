@@ -161,9 +161,9 @@ function toggle_load_job_form() {
     }
 
     function cancel() {
-        state = $('#' + sessionStorage.getItem('selected_job') + '>td')[2].innerText;
-        name = $('#' + sessionStorage.getItem('selected_job') + ">td")[1].innerText;
-        if (!(state == 'RUNNING' || state == 'PENDING')) {
+        state = $('#' + sessionStorage.getItem('selected_job') + '>td')[3].innerText;
+        name = $('#' + sessionStorage.getItem('selected_job') + ">td")[2].innerText;
+        if (!(state == 'R' || state == 'PD')) {
             return;
         }
         if (confirm(`Cancel job ${name}, id:${sessionStorage.getItem('selected_job')}?`)) {
