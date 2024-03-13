@@ -14,6 +14,8 @@
 
 5. Open `config.json` in the root folder, and set the `defaults.account` field to your slurm project/account id, and `defaults.home_folder` to your actual home folder.
 
+6. (*Optional*) To modify the form for submitting jobs and the pre-configured settings (e.g., QoS, partition, etc), you need to modify `src/templates/slurm/slurm.html` (Flask template).
+
 ## Usage
 
 1. Start the app with `python main.py`.
