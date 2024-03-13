@@ -273,12 +273,12 @@ function toggle_load_job_form() {
                             <td><input type="text" name="#SBATCH --chdir " placeholder="working directory" value="{{ htmldata.defaults.home_folder }}" required></td>
                         </tr>
                         <tr>
-                            <td><label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label></td>
-                            <td><input type="text" name="#SBATCH --gres=gpu:" placeholder="gpu number; leave empty if cpu only" value="1"></td>
+                            <td><label for="#SBATCH --cpus-per-task "><strong>#SBATCH --cpus-per-task</strong></label></td>
+                            <td><input type="number" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4" required></td>
                         </tr>
                         <tr>
-                            <td><label for="#SBATCH --cpus-per-task ">#SBATCH --cpus-per-task</label></td>
-                            <td><input type="number" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4" required></td>
+                            <td><label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label></td>
+                            <td><input type="text" name="#SBATCH --gres=gpu:" placeholder="gpu number; leave empty if cpu only" value="1"></td>
                         </tr>
                         <tr>
                             <td><label for="#SBATCH --mem=">#SBATCH --mem=</label></td>

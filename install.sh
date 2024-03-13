@@ -3,7 +3,7 @@ pip install -r requirements.txt
 python reset_password.py 123456
 
 mkdir -p ~/.local/bin
-cp bin ~/.local/bin
+cp -r bin/* ~/.local/bin
 chmod +x ~/.local/bin/code
 chmod +x ~/.local/bin/server
 chmod +x ~/.local/bin/submit
