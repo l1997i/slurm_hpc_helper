@@ -41,6 +41,16 @@ def slurm():
     session['last_submit_form'] = last_submit_form 
     return render_template('slurm/slurm.html',htmldata=htmldata)
 
+@bp.route('/attach_job', methods=['POST'])
+@login_required
+def attachJob():
+    name = request.form['name']
+    job_id = g_selected_job_id
+    script = request.form['job_script']
+    print(script)
+    manager.attachJob(job_id, name, script)
+    return ('', 204)
+
 @bp.route('/load_json_job', methods=['POST'])
 @login_required
 def loadJsonJob():
@@ -178,9 +188,11 @@ def disconnect():
 
 @socketio.on('select_job')
 def select_job(message):
+    global g_selected_job_id
     job_id = message['job_id']
     session['selected_job_id'] = job_id
     manager.UpdateOutput(job_id)
+    g_selected_job_id = job_id
     emit('update', {'html':{
             'output':myEscape(outputs[session['selected_job_id']]),
             'job_script':myEscape(scripts[session['selected_job_id']])
@@ -190,11 +202,12 @@ def select_job(message):
 def cancel_job(message):
     job_id = message['job_id']
     manager.cancelJob(job_id)
-
+    
 @socketio.on('kill_stage')
 def kill_stage(message):
     job_id = message['job_id']
     manager.killStage(job_id)
+    
 
 import time
 class SlurmManager():
@@ -335,13 +348,26 @@ class SlurmManager():
     def cancelJob(self,job_id):
         o = cli(f'scancel {job_id}')
         socketio.emit('update', {'html':{'message':o}},to='slurm')
-        
+
     def killStage(self,job_id):
         print(f"ssh {self.jobs[job_id]['node']} \"kill {self.jobs[job_id]['pid_1']}\"")
         o = cli(f"ssh {self.jobs[job_id]['node']} \"kill -9 {self.jobs[job_id]['pid_1']}\"")
         time.sleep(5)
         o = cli(f"ssh {self.jobs[job_id]['node']} \"kill -9 {self.jobs[job_id]['pid_2']}\"")
         socketio.emit('update', {'html':{'message':o}},to='slurm')
+        
+    def attachJob(self,job_id,name,script):
+        wk_dir = os.path.join('/', *os.path.split(self.jobs[job_id]['script'])[0].split(os.sep)[:-2], '')
+        time_dir = int(time.time()).__str__()
+        os.makedirs(os.path.join(wk_dir, 'attach', time_dir), exist_ok=True)
+        print(os.path.join(wk_dir, 'attach', time_dir))
+        temp_sh_loc = os.path.join(wk_dir, 'attach', time_dir, f'{name}.sh')
+        temp_out_loc = os.path.join(wk_dir, 'attach', time_dir, f'{name}.out')
+        with open(temp_sh_loc, 'w') as file:
+            file.write(script.replace('\r\n','\n'))
+        
+        cli(f"ssh {self.jobs[job_id]['node']} \"source /etc/profile;source ~/anaconda3/etc/profile.d/conda.sh;conda activate slurmgui;python3 {HPC_GUI_PATH}/src/templates/py/run_script.py {temp_sh_loc} {job_id}_1 > {temp_out_loc} 2>&1\"")
+    
 
 def cli(command,return_err = False):
     process = subprocess.Popen([command],shell = True ,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -396,7 +422,7 @@ def generateJobList(jobs):
     for job in jobs.values():
         if job["state"] == 'R' or job["state"] == 'PD':
             timestamp = os.path.basename(job["ts"])
-            dt = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+            dt = datetime.fromtimestamp(int(timestamp)).strftime('%m-%d %H:%M:%S')
             res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["node"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td><td style="color:#28C73F">{job["pid_1"]}</td><td style="color:#FE5F58">{job["pid_2"]}</td></tr>'
     return res
 

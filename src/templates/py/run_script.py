@@ -10,7 +10,7 @@ def run_script(script_path, title):
     stage_id = title.split('_')[-1]
     setproctitle(title)
     process = subprocess.Popen(["bash", script_path])
-    print(f"[Stage {stage_id}] Started process PID:", process.pid)
+    print(f"[Stage {stage_id}] Started process PID: {process.pid}")
     # pid2json(process.pid, stage_id)
     process.wait()
     return process.pid

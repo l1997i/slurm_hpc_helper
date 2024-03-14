@@ -9,6 +9,7 @@
             $('#job_form').css('display', 'none');
         {% endif %}
         $('#upload_json_form').css('display', 'none');
+        $('#attach_form').css('display', 'none');
         for (const [key, value] of Object.entries(last_submit_form)) {
             $('#job_form')[0][key].value = value
         }
@@ -97,22 +98,43 @@
 
 
     function toggle_job_form() {
-    if ($('#job_form').css('display') == 'none') {
-        $('#job_form').css('display', 'block');
-        $('#upload_json_form').css('display', 'none');
-    } else {
-        $('#job_form').css('display', 'none');
+        if ($('#job_form').css('display') == 'none') {
+            $('#job_form').css('display', 'block');
+            $('#upload_json_form').css('display', 'none');
+            $('#attach_form').css('display', 'none');
+        } else {
+            $('#job_form').css('display', 'none');
+        }
     }
-}
 
-function toggle_load_job_form() {
-    if ($('#upload_json_form').css('display') == 'none') {
-        $('#upload_json_form').css('display', 'block');
-        $('#job_form').css('display', 'none');
-    } else {
-        $('#upload_json_form').css('display', 'none');
+    function toggle_attach_form() {
+        if ($('#attach_form').css('display') == 'none') {
+            $('#attach_form').css('display', 'block');
+            $('#upload_json_form').css('display', 'none');
+            $('#job_form').css('display', 'none');
+        } else {
+            $('#attach_form').css('display', 'none');
+        }
+
+        state = $('#' + sessionStorage.getItem('selected_job') + '>td')[3].innerText;
+        name = $('#' + sessionStorage.getItem('selected_job') + ">td")[2].innerText;
+        if (!(state == 'R' || state == 'PD')) {
+            return;
+        }
+        socket.emit('attachJob', {
+                'job_id': sessionStorage.getItem('selected_job')
+            });
     }
-}
+
+    function toggle_load_job_form() {
+        if ($('#upload_json_form').css('display') == 'none') {
+            $('#upload_json_form').css('display', 'block');
+            $('#job_form').css('display', 'none');
+            $('#attach_form').css('display', 'none');
+        } else {
+            $('#upload_json_form').css('display', 'none');
+        }
+    }
 
     function OnQoSChanged(e) {
         switch (e.value) {
@@ -185,6 +207,18 @@ function toggle_load_job_form() {
             });
         }
     }
+
+    // function attach() {
+    //     state = $('#' + sessionStorage.getItem('selected_job') + '>td')[3].innerText;
+    //     name = $('#' + sessionStorage.getItem('selected_job') + ">td")[2].innerText;
+    //     if (!(state == 'R' || state == 'PD')) {
+    //         return;
+    //     }
+    //     socket.emit('attachJob', {
+    //             'job_id': sessionStorage.getItem('selected_job')
+    //         });
+    // }
+
 </script>
 <script>
     last_submit_form = {{session.last_submit_form | tojson}}
@@ -228,6 +262,7 @@ function toggle_load_job_form() {
             <button onclick="toggle_load_job_form()">load</button>
             <button onclick="cancel()">cancel</button>
             <button onclick="kill()">kill</button>
+            <button onclick="toggle_attach_form()">attach</button>
             <div id="add_job_form">
                 <form action="/slurm/submit_job" method="post" id="job_form">
                     <table class="form_table">
@@ -351,6 +386,26 @@ function toggle_load_job_form() {
                     </table>
                     <input type="submit" value="Load">
                     <p id="message_json"></p>
+                </form>
+            </div>
+            <br>
+
+            <div id="add_attach_form">
+                <form action="/slurm/attach_job" method="post" id="attach_form">
+                    <table class="form_table">
+                        <tr>
+                            <td><label for="name"><strong>Job name</strong></label></td>
+                            <td><input type="text" name="name" placeholder="name" value="{{ htmldata.defaults.name }}" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="job_script"><strong>job scripts</strong></label></td>
+                            <td><textarea name="job_script" style="width:600px;height:300px;font-size: small;" form="attach_form" placeholder="echo 'Hello world??'" required></textarea></td>
+                        </tr>
+
+                    </table>
+                    <input type="submit" value="Attach">
+                    <!-- <button onclick="attach()">Attach</button> -->
+                    <p id="message_attach"></p>
                 </form>
             </div>
             <br>
