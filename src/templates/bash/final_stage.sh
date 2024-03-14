@@ -1,4 +1,5 @@
 ################### Final Stage  <<<<<<<<<<<<<<<<<<<<<<<<<
+receipt_addr="i@luisli.org"
 source /etc/profile
 source ~/anaconda3/etc/profile.d/conda.sh
 module load cuda/11.1
