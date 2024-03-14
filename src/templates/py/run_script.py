@@ -6,14 +6,19 @@ import json
 
 slurm_job_id = os.environ.get('SLURM_JOB_ID')
 
-def run_script(script_path, title):
+def run_script(script_path, title, output_file=None):
     stage_id = title.split('_')[-1]
     setproctitle(title)
-    process = subprocess.Popen(["bash", script_path])
+    if output_file:
+        with open(output_file, 'w') as file:
+            process = subprocess.Popen(["bash", script_path], stdout=file, stderr=subprocess.STDOUT)
+    else:
+        process = subprocess.Popen(["bash", script_path])
+    
     print(f"[Stage {stage_id}] Started process PID: {process.pid}")
-    # pid2json(process.pid, stage_id)
     process.wait()
     return process.pid
+
 
 def pid2json(pid, stage_id):
     current_path = os.getcwd()
@@ -40,11 +45,11 @@ def write_job_json(pid, stage_id, json_path):
         json.dump(data, file)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python run_script_with_title.py <path_to_script.sh> <process_title>")
-        sys.exit(1)
-    
     script_path = sys.argv[1]
     title = sys.argv[2]
+    if len(sys.argv) == 4:
+        output_file = sys.argv[3]
+        run_script(script_path, title, output_file)
+    else:   
+        run_script(script_path, title)
     
-    run_script(script_path, title)

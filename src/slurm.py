@@ -47,7 +47,6 @@ def attachJob():
     name = request.form['name']
     job_id = g_selected_job_id
     script = request.form['job_script']
-    print(script)
     manager.attachJob(job_id, name, script)
     return ('', 204)
 
@@ -273,8 +272,8 @@ class SlurmManager():
                         self.jobs[id]['node'] = columns[-1]
                         self.jobs[id]['state'] = columns[4]
                         if self.jobs[id]['node']:
-                            pid_1 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f {id}_1\"")
-                            pid_2 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f {id}_2\"")
+                            pid_1 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f '^{id}_1'\"")
+                            pid_2 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f '^{id}_2'\"")
                             self.jobs[id]['pid_1'] = pid_1
                             self.jobs[id]['pid_2'] = pid_2
                         is_id_in_line = 1
@@ -365,8 +364,8 @@ class SlurmManager():
         temp_out_loc = os.path.join(wk_dir, 'attach', time_dir, f'{name}.out')
         with open(temp_sh_loc, 'w') as file:
             file.write(script.replace('\r\n','\n'))
-        
-        cli(f"ssh {self.jobs[job_id]['node']} \"source /etc/profile;source ~/anaconda3/etc/profile.d/conda.sh;conda activate slurmgui;python3 {HPC_GUI_PATH}/src/templates/py/run_script.py {temp_sh_loc} {job_id}_1 > {temp_out_loc} 2>&1\"")
+        socketio.emit('update', {'html':{'message_attach':f'Job {job_id} attached successfully.'}},to='slurm')
+        cli(f"ssh {self.jobs[job_id]['node']} \"source /etc/profile;source ~/anaconda3/etc/profile.d/conda.sh;conda activate slurmgui;python3 {HPC_GUI_PATH}/src/templates/py/run_script.py {temp_sh_loc} {job_id}_1 {temp_out_loc}\"")
     
 
 def cli(command,return_err = False):
