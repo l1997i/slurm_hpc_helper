@@ -107,14 +107,15 @@ def submitJob():
             bash_script_content = file.read()
         job_script += '\n'+ bash_script_content
     
-    job_script += f"\nPY_SCRIPT_PATH={HPC_GUI_PATH}/src/templates/py"
-    job_script += f"\nSH_SCRIPT_PATH={HPC_GUI_PATH}/src/templates/bash\n"
+    job_script += f"\nexport HPC_GUI_PATH={HPC_GUI_PATH}"
+    job_script += f"\nexport PY_SCRIPT_PATH={HPC_GUI_PATH}/src/templates/py"
+    job_script += f"\nexport SH_SCRIPT_PATH={HPC_GUI_PATH}/src/templates/bash\n"
     
     job_script += '\n########################### 1st STAGE <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
     with open(user_sh_loc, 'w') as file:
         file.write(request.form['job_script'].replace('\r\n','\n'))
     shutil.copy(user_sh_loc, temp_sh_loc)
-    job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py {temp_sh_loc} ${{SLURM_JOB_ID}}_1a"
+    job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py {temp_sh_loc} ${{SLURM_JOB_ID}}_1"
     
     if final_stage_enabled:
         job_script += '\n########################### 2nd STAGE <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
@@ -247,12 +248,18 @@ class SlurmManager():
 
         for id in self.jobs.keys():
             if self.jobs[id]['state'] == 'R' or self.jobs[id]['state'] == 'PD':
+                
                 is_id_in_line = 0 # NOT in Lines
                 for line in sacct.split("\n"):
                     if id in line:
                         columns = line.split()
                         self.jobs[id]['node'] = columns[-1]
                         self.jobs[id]['state'] = columns[4]
+                        if self.jobs[id]['node']:
+                            pid_1 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f {id}_1\"")
+                            pid_2 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f {id}_2\"")
+                            self.jobs[id]['pid_1'] = pid_1
+                            self.jobs[id]['pid_2'] = pid_2
                         is_id_in_line = 1
                 if not is_id_in_line:
                     self.jobs[id]['state'] = 'CP'  # CP for COMPLETED
@@ -312,7 +319,7 @@ class SlurmManager():
                 os.rename(old_script_loc, script_loc)
                 os.rename(old_json_loc, json_loc)
                 
-            self.jobs[job_id]={'id':job_id,'name':name,'state':'PD','script':script_loc,'output':output_loc,'ts':ts,'node':'UNKNOWN'}
+            self.jobs[job_id]={'id':job_id,'name':name,'state':'PD','script':script_loc,'output':output_loc,'ts':ts,'node':'UNKNOWN','pid_1':'','pid_2':''}
             self.justSubmitted = job_id
             wk_script_directory = os.path.dirname(script_loc)
             wk_job_path = os.path.join(wk_script_directory, "job_info.json")
@@ -374,12 +381,12 @@ def formatSacct(sacct):
     return res
 
 def generateJobList(jobs):
-    res = '<tr><th>JOBID</th><th>Nodelist</th><th>Name</th><th>State</th><th>SubmitOn</th></tr>'
+    res = '<tr><th>JOBID</th><th>Nodelist</th><th>Name</th><th>State</th><th>SubmitOn</th><th>PID_1</th><th>PID_2</th></tr>'
     for job in jobs.values():
         if job["state"] == 'R' or job["state"] == 'PD':
             timestamp = os.path.basename(job["ts"])
             dt = datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
-            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["node"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td></tr>'
+            res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["node"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td><td style="color:#28C73F">{job["pid_1"]}</td><td style="color:#FE5F58">{job["pid_2"]}</td></tr>'
     return res
 
 manager = SlurmManager()
