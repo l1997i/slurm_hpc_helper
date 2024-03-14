@@ -3,6 +3,7 @@ from flask_login import login_required
 import flask
 import subprocess
 import threading
+import shutil
 from . import socketio
 from flask_socketio import emit, join_room
 import json, os
@@ -13,6 +14,8 @@ bp = Blueprint('slurm', __name__, url_prefix='/slurm')
 outputs = {}
 scripts = {}
 last_submit_form = {}
+
+HPC_GUI_PATH = os.getcwd()
 
 def relative(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
@@ -65,11 +68,14 @@ def submitJob():
         socketio.emit('update', {'html':{'message':'ERROR: working dir (--chdir) not exsit!'}},to='slurm')
         return ('', 204)
     os.makedirs(os.path.join(wk_dir, '.logs/job_scripts', time_dir), exist_ok=True)
+    os.makedirs(os.path.join(wk_dir, '.logs/.temp', time_dir), exist_ok=True)
     script_loc = os.path.join(wk_dir, '.logs/job_scripts', time_dir, time_dir+'.sh')
     json_setting_loc = os.path.join(wk_dir, '.logs/job_scripts', time_dir, time_dir+'.json')
+    user_sh_loc = os.path.join(wk_dir, '.logs/job_scripts', time_dir, 'script.sh')
+    temp_sh_loc = os.path.join(wk_dir, '.logs/.temp/', time_dir, 'script.sh')
     sshd_sh_loc = 'src/templates/bash/sshd.sh'
     code_sh_loc = 'src/templates/bash/code_tunnel.sh'
-    final_sh_loc = 'src/templates/bash/final_stage.sh'
+    final_sh_loc = 'final_stage.sh'
     name = request.form['name']
     job_script='#!/bin/bash\n#--------------------------------\n'
     job_script +=f"#SBATCH -J {request.form['name']}\n"
@@ -82,9 +88,16 @@ def submitJob():
             job_script +=f"#SBATCH {kv}\n"
     job_script += '#--------------------------------\n'
     
+    job_script += '\n########################### BASH <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
+    command_lines = [line.strip() for line in request.form['job_script'].strip().split('\n') if line.strip()]
+    commentted_lines = "\n".join(["# " + line for line in command_lines])
+    job_script += commentted_lines
+    
     code_enabled = 'interactive_code' in request.form
     sshd_enabled = 'interactive_sshd' in request.form
-    final_stage_enabled = 'final_stage'  in request.form
+    final_stage_enabled = 'final_stage' in request.form
+    is_wait = 'is_wait' in request.form
+    
     if code_enabled:
         with open(code_sh_loc, 'r') as file:
             bash_script_content = file.read()
@@ -93,14 +106,22 @@ def submitJob():
         with open(sshd_sh_loc, 'r') as file:
             bash_script_content = file.read()
         job_script += '\n'+ bash_script_content
-        
-    job_script += '\n###########################  <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
-    job_script += '\n'+ request.form['job_script']
+    
+    job_script += f"\nPY_SCRIPT_PATH={HPC_GUI_PATH}/src/templates/py"
+    job_script += f"\nSH_SCRIPT_PATH={HPC_GUI_PATH}/src/templates/bash\n"
+    
+    job_script += '\n########################### 1st STAGE <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
+    with open(user_sh_loc, 'w') as file:
+        file.write(request.form['job_script'].replace('\r\n','\n'))
+    shutil.copy(user_sh_loc, temp_sh_loc)
+    job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py {temp_sh_loc} ${{SLURM_JOB_ID}}_1a"
+    
     if final_stage_enabled:
-        with open(final_sh_loc, 'r') as file:
-            bash_script_content = file.read()
-        job_script += '\n'+ bash_script_content
-        job_script += '\n'+ 'wait'
+        job_script += '\n########################### 2nd STAGE <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
+        job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py ${{SH_SCRIPT_PATH}}/{final_sh_loc} ${{SLURM_JOB_ID}}_2"
+    if is_wait:
+        job_script += '\nwait'
+    
     socketio.start_background_task(manager.submitJob, name, time_dir, wk_dir, job_script, script_loc, request.form['additional args'])
 
     last_submit_form = request.form
