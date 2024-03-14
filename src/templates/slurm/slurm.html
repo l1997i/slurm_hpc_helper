@@ -172,6 +172,19 @@ function toggle_load_job_form() {
             });
         }
     }
+
+    function kill() {
+        state = $('#' + sessionStorage.getItem('selected_job') + '>td')[3].innerText;
+        name = $('#' + sessionStorage.getItem('selected_job') + ">td")[2].innerText;
+        if (!(state == 'R' || state == 'PD')) {
+            return;
+        }
+        if (confirm(`Kill job ${name}, id:${sessionStorage.getItem('selected_job')} current stage?`)) {
+            socket.emit('kill_stage', {
+                'job_id': sessionStorage.getItem('selected_job')
+            });
+        }
+    }
 </script>
 <script>
     last_submit_form = {{session.last_submit_form | tojson}}
@@ -214,6 +227,7 @@ function toggle_load_job_form() {
             <button onclick="toggle_job_form()">new</button>
             <button onclick="toggle_load_job_form()">load</button>
             <button onclick="cancel()">cancel</button>
+            <button onclick="kill()">kill</button>
             <div id="add_job_form">
                 <form action="/slurm/submit_job" method="post" id="job_form">
                     <table class="form_table">

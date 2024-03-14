@@ -190,7 +190,11 @@ def select_job(message):
 def cancel_job(message):
     job_id = message['job_id']
     manager.cancelJob(job_id)
-    
+
+@socketio.on('kill_stage')
+def kill_stage(message):
+    job_id = message['job_id']
+    manager.killStage(job_id)
 
 import time
 class SlurmManager():
@@ -330,6 +334,13 @@ class SlurmManager():
 
     def cancelJob(self,job_id):
         o = cli(f'scancel {job_id}')
+        socketio.emit('update', {'html':{'message':o}},to='slurm')
+        
+    def killStage(self,job_id):
+        print(f"ssh {self.jobs[job_id]['node']} \"kill {self.jobs[job_id]['pid_1']}\"")
+        o = cli(f"ssh {self.jobs[job_id]['node']} \"kill -9 {self.jobs[job_id]['pid_1']}\"")
+        time.sleep(5)
+        o = cli(f"ssh {self.jobs[job_id]['node']} \"kill -9 {self.jobs[job_id]['pid_2']}\"")
         socketio.emit('update', {'html':{'message':o}},to='slurm')
 
 def cli(command,return_err = False):
