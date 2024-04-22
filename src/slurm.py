@@ -126,11 +126,11 @@ def submitJob():
     with open(user_sh_loc, 'w') as file:
         file.write(request.form['job_script'].replace('\r\n','\n'))
     shutil.copy(user_sh_loc, temp_sh_loc)
-    job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py {temp_sh_loc} ${{SLURM_JOB_ID}}_1"
+    job_script += f"python3 ${{PY_SCRIPT_PATH}}/run_script.py {temp_sh_loc} ${{SLURM_JOB_ID}}_1"
     
     if final_stage_enabled:
         job_script += '\n########################### 2nd STAGE <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
-        job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py ${{SH_SCRIPT_PATH}}/{final_sh_loc} ${{SLURM_JOB_ID}}_2"
+        job_script += f"python3 ${{PY_SCRIPT_PATH}}/run_script.py ${{SH_SCRIPT_PATH}}/{final_sh_loc} ${{SLURM_JOB_ID}}_2"
     if is_wait:
         job_script += '\nwait'
     

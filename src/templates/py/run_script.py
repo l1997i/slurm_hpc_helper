@@ -1,10 +1,18 @@
-import sys
+#!/usr/bin/env python3
+
 import subprocess
-from setproctitle import setproctitle
+import sys
 import os
 import json
 
+try:
+    from setproctitle import setproctitle
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "setproctitle"])
+    from setproctitle import setproctitle  # Retry the import after installation
+
 slurm_job_id = os.environ.get('SLURM_JOB_ID')
+
 
 def run_script(script_path, title, output_file=None):
     stage_id = title.split('_')[-1]
@@ -14,8 +22,8 @@ def run_script(script_path, title, output_file=None):
             process = subprocess.Popen(["bash", script_path], stdout=file, stderr=subprocess.STDOUT)
     else:
         process = subprocess.Popen(["bash", script_path])
-    
-    print(f"[Stage {stage_id}] Started process PID: {process.pid}")
+
+    print("[Stage {}] Started process PID: {}".format(stage_id, process.pid))
     process.wait()
     return process.pid
 
@@ -23,10 +31,11 @@ def run_script(script_path, title, output_file=None):
 def pid2json(pid, stage_id):
     current_path = os.getcwd()
     hpc_gui_path = os.environ.get('HPC_GUI_PATH')
-    json_path: str = os.path.join(current_path, f".logs/job_scripts/{slurm_job_id}/job_info.json")
+    json_path = os.path.join(current_path, ".logs/job_scripts/{}/job_info.json".format(slurm_job_id))
     job_path = os.path.join(hpc_gui_path, "data/jobs.json")
     write_job_json(pid, stage_id, job_path)
     write_json(pid, stage_id, json_path)
+
 
 def write_json(pid, stage_id, json_path):
     with open(json_path, 'r') as file:
@@ -35,7 +44,8 @@ def write_json(pid, stage_id, json_path):
         data[key] = pid
     with open(json_path, 'w') as file:
         json.dump(data, file)
-        
+
+
 def write_job_json(pid, stage_id, json_path):
     with open(json_path, 'r') as file:
         data = json.load(file)
@@ -44,12 +54,12 @@ def write_job_json(pid, stage_id, json_path):
     with open(json_path, 'w') as file:
         json.dump(data, file)
 
+
 if __name__ == "__main__":
     script_path = sys.argv[1]
     title = sys.argv[2]
     if len(sys.argv) == 4:
         output_file = sys.argv[3]
         run_script(script_path, title, output_file)
-    else:   
+    else:
         run_script(script_path, title)
-    
