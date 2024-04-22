@@ -1,10 +1,12 @@
 <!doctype html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.js" integrity="sha512-tE1z+95+lMCGwy+9PnKgUSIeHhvioC9lMlI7rLWU0Ps3XTdjRygLcy4mLuL0JAoK4TLdQEyP0yOl/9dMOqpH/Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.js"
+        integrity="sha512-tE1z+95+lMCGwy+9PnKgUSIeHhvioC9lMlI7rLWU0Ps3XTdjRygLcy4mLuL0JAoK4TLdQEyP0yOl/9dMOqpH/Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
     var socket;
     var selected;
-    $(document).ready(function() {
+    $(document).ready(function () {
         {% if not htmldata.is_load %}
             $('#job_form').css('display', 'none');
         {% endif %}
@@ -18,7 +20,7 @@
         // The connection URL has the following format, relative to the current page:
         //     http[s]://<domain>:<port>[/<namespace>]
         socket = io.connect('http://' + document.domain + ':' + location.port + '/');
-        socket.on('update', function(msg) {
+        socket.on('update', function (msg) {
             for (const [key, value] of Object.entries(msg['html'])) {
                 $('#' + key).html(value);
             }
@@ -31,7 +33,7 @@
                 }
             }
         });
-        socket.on('select', function(msg) {
+        socket.on('select', function (msg) {
             selected = msg;
             sessionStorage.setItem('selected_job', selected);
             selected = $('.selectable').filter((_, e) => {
@@ -49,12 +51,11 @@
     function OnFirstUpdate(key) {
         switch (key) {
             case 'jobs':
-                if (sessionStorage.getItem('selected_job')){
+                if (sessionStorage.getItem('selected_job')) {
                     selected = $('.selectable').filter((_, e) => {
                         return e.id == sessionStorage.getItem('selected_job');
                     })
-                }
-                else {
+                } else {
                     selected = $('.selectable').last();
                 }
                 selected.click();
@@ -81,14 +82,14 @@
     }
 
     function makeSelectable() {
-        $('.selectable').click(function() {
+        $('.selectable').click(function () {
             $(this).toggleClass('selected');
             OnItemSelected($(this));
         });
-        $('.selectable').mouseover(function() {
+        $('.selectable').mouseover(function () {
             $(this).toggleClass('hover');
         });
-        $('.selectable').mouseleave(function() {
+        $('.selectable').mouseleave(function () {
             $(this).removeClass('hover');
         });
         $('.selectable').filter((_, e) => {
@@ -122,8 +123,8 @@
             return;
         }
         socket.emit('attachJob', {
-                'job_id': sessionStorage.getItem('selected_job')
-            });
+            'job_id': sessionStorage.getItem('selected_job')
+        });
     }
 
     function toggle_load_job_form() {
@@ -159,7 +160,7 @@
         }
     }
 
-        function OnPartitionChanged(e) {
+    function OnPartitionChanged(e) {
         switch (e.value) {
             case 'infer':
                 $("#time_input").val('2-00:00:00');
@@ -228,7 +229,7 @@
         min-width: 100%;
         border-color: #333;
     }
-    
+
     body {
         height: 100%;
         overflow-y: hidden;
@@ -241,176 +242,322 @@
 
 
 {% block content %}
-<div class="overscroll-auto flex flex-col auto-cols-max lg:flex-row gap-8 p-8 dark:bg-zinc-800 dark:text-zinc-100 transition duration-500 ease-in-out">
-    <div class="flex-1 overflow-auto rounded-lg border-3 border-zinc-400 dark:border-zinc-600 space-y-2">
-        <div class="overflow-auto max-h-48 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="job_scroll">
-            <table id="jobs" class="w-full table-auto"></table>
-        </div>
-        <div class="overflow-auto overscroll-none max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="sacct">Loading</div>
-        <div class="overflow-auto overscroll-none max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="sinfo">Loading</div>
-        <div class="overflow-auto overscroll-none max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="job_script">Please select a job, and your script will be shown here</div>
-        <div class="overflow-auto max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="output">Please select a job, and your slurm output will be shown here</div>
-    </div>
-    <div class="flex-1 overflow-auto rounded-lg border-2 border-zinc-400 dark:border-zinc-600 shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid">
-        <div class="p-4">
-            <h4 class="font-bold text-shadow">SUBMIT a job / CANCEL a job ...</h4>
-            <div class="flex gap-4 my-4">
-                <button class="bg-zinc-600 hover:bg-zinc-800 text-white font-bold py-2 px-4 rounded shadow" onclick="toggle_job_form()">New</button>
-                <button class="bg-zinc-600 hover:bg-zinc-800 text-white font-bold py-2 px-4 rounded shadow" onclick="toggle_load_job_form()">Load</button>
-                <button class="bg-red-700 hover:bg-red-900 text-white font-bold py-2 px-4 rounded shadow" onclick="cancel()">Cancel</button>
-                <button class="bg-red-700 hover:bg-red-900 text-white font-bold py-2 px-4 rounded shadow" onclick="kill()">Kill</button>
-                <button class="bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded shadow" onclick="toggle_attach_form()">Attach</button>
+    <div
+        class="overscroll-auto flex flex-col auto-cols-max lg:flex-row gap-8 p-8 transition duration-500 ease-in-out">
+    <div class="flex-1 overflow-auto rounded-lg space-y-6">
+            <div
+            class="overflow-auto max-h-48 p-4 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+                id="job_scroll">
+            <table id="jobs" class="w-full table-auto bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"></table>
             </div>
-            <div id="add_job_form" class="overflow-auto my-4">
-                <form action="/slurm/submit_job" method="post" id="job_form">
-                    <table class="form_table">
-                        <tr>
-                            <td><label for="name"><strong>Job name</strong></label></td>
-                            <td><input type="text" name="name" placeholder="name" value="{{ htmldata.defaults.name }}" required></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH -A"><strong>#SBATCH -A</strong></label></td>
-                            <td><select name="#SBATCH -A " placeholder="account" value="{{ htmldata.defaults.account }}"  type="text" style="font-size:14px;" required>
+            <div
+                class="overflow-auto overscroll-none max-h-96 p-4 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+                id="sacct">Loading
+            </div>
+            <div
+                class="overflow-auto overscroll-none max-h-96 p-4 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+                id="sinfo">Loading
+            </div>
+            <div
+                class="console overflow-auto overscroll-none max-h-96 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+                id="job_script">Please select a job, and your script will be shown here
+            </div>
+            <div
+            class="console overflow-auto overscroll-none max-h-96 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+                id="output">Please select a job, and your slurm output will be shown here
+            </div>
+        </div>
+        <div
+            class="flex-1 overflow-auto bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200">
+            <div class="p-4">
+
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button type="button"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white" onclick="toggle_job_form()">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M20.337 3.664c.213.212.354.486.404.782.294 1.711.657 5.195-.906 6.76-1.77 1.768-8.485 5.517-10.611 6.683a.987.987 0 0 1-1.176-.173l-.882-.88-.877-.884a.988.988 0 0 1-.173-1.177c1.165-2.126 4.913-8.841 6.682-10.611 1.562-1.563 5.046-1.198 6.757-.904.296.05.57.191.782.404ZM5.407 7.576l4-.341-2.69 4.48-2.857-.334a.996.996 0 0 1-.565-1.694l2.112-2.111Zm11.357 7.02-.34 4-2.111 2.113a.996.996 0 0 1-1.69-.565l-.422-2.807 4.563-2.74Zm.84-6.21a1.99 1.99 0 1 1-3.98 0 1.99 1.99 0 0 1 3.98 0Z" clip-rule="evenodd"/>
+                    </svg>
+                    New
+                    </button>
+                    <button type="button"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white" onclick="toggle_load_job_form()">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 3a1 1 0 0 1 .78.375l4 5a1 1 0 1 1-1.56 1.25L13 6.85V14a1 1 0 1 1-2 0V6.85L8.78 9.626a1 1 0 1 1-1.56-1.25l4-5A1 1 0 0 1 12 3ZM9 14v-1H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-4v1a3 3 0 1 1-6 0Zm8 2a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2H17Z" clip-rule="evenodd"/>
+                    </svg>
+                    Load
+                    </button>
+                    <button type="button"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white" onclick="cancel()">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z" clip-rule="evenodd"/>
+                    </svg>
+                    Cancel
+                    </button>
+                </div>
+
+            <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button type="button"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white" onclick="toggle_attach_form()">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 8v8m0-8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0V9a3 3 0 0 0-3-3h-3m1.5-2-2 2 2 2"/>
+                    </svg>
+                    Attach
+                    </button>
+                    <button type="button"
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white" onclick="kill()">
+                    <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm5.757-1a1 1 0 1 0 0 2h8.486a1 1 0 1 0 0-2H7.757Z" clip-rule="evenodd"/>
+                    </svg>
+                    Kill
+                    </button>
+                </div>
+
+
+                <div id="add_job_form" class="overflow-auto my-4">
+                    <form action="/slurm/submit_job" method="post" id="job_form">
+                        <div class="grid gap-6 mb-6 md:grid-cols-2">
+                            <div>
+                                <label for="name"><strong>Job name</strong></label>
+                                <input type="text" name="name" placeholder="name" value="{{ htmldata.defaults.name }}"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                       required>
+                            </div>
+                            <div>
+                                <label for="#SBATCH -A" class="block"><strong>#SBATCH -A</strong></label>
+                                <select name="#SBATCH -A " placeholder="account" value="{{ htmldata.defaults.account }}"
+                                        type="text" style="font-size:14px;"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        required>
                                     <option value="ncc_users">NCC</option>
                                     <option value="bddur07">Bede</option>
                                 </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH -p"><strong>#SBATCH -p</strong></label></td>
-                            <td><select name="#SBATCH -p " id="partition_input" type="text" onchange="OnPartitionChanged(this)" onload="OnPartitionChanged(this)" name="#SBATCH -p " style="font-size:14px;" required>
-                                <option value="res-gpu-small">[NCC] res-gpu-small</option>
-                                <option value="res-gpu-large">[NCC] res-gpu-large</option>
-                                <option value="gpu-bigmem">[NCC] gpu-bigmem</option>
-                                <option value="gpu-private">[NCC] gpu-toby0</option>
-                                <option value="cpu">[NCC] cpu</option>
-                                <option value="infer">[Bede] infer (cpu)</option>
-                                <option value="gpu">[Bede] gpu</option>
-                                <option value="test">[Bede] gpu test</option>
-                                <option value="gh">[Bede] gh (GH200)</option>
-                                <option value="ghlogin">[Bede] ghlogin (GH200)</option>
-                                <option value="ghtest">[Bede] ghtest (GH200)</option>
-                            </select>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --qos"><strong>#SBATCH --qos</strong></label></td>
-                            <td><select name="#SBATCH --qos " id="qos_input" type="text" name="#SBATCH --qos " onchange="OnQoSChanged(this)" onload="OnQoSChanged(this)" style="font-size:14px;" required>
-                                <option value="short">[NCC] short</option>
-                                <option value="long-high-prio">[NCC] long-high-prio</option>
-                                <option value="long-low-prio">[NCC] long-low-prio</option>
-                                <option value="mznv82-qos">[NCC] mznv82-qos</option>
-                                <option value="debug">[NCC] debug</option>
-                                <option value="long-cpu">[NCC] long-cpu</option>
-                                <option value="normal">[Bede] normal</option>
-                                <option value="test">[Bede] test</option>
-                                <option value="ghtest">[Bede] ghtest (GH200)</option>
-                            </select>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --nodes="><strong>#SBATCH --nodes=</strong></label></td>
-                            <td><input type="number" name="#SBATCH --nodes=" placeholder="1" value="1" required>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --time="><strong>#SBATCH --time=</strong></label></td>
-                            <td><input id="time_input" type="text" name="#SBATCH --time=" placeholder="24:00:00" value="2-00:00:00" required></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --chdir "><strong>#SBATCH --chdir </strong></label></td>
-                            <td><input type="text" name="#SBATCH --chdir " placeholder="working directory" value="{{ htmldata.defaults.home_folder }}" required></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --cpus-per-task "><strong>#SBATCH --cpus-per-task</strong></label></td>
-                            <td><input type="number" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4" required></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label></td>
-                            <td><input type="text" name="#SBATCH --gres=gpu:" placeholder="gpu number; leave empty if cpu only" value="1"></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --mem=">#SBATCH --mem=</label></td>
-                            <td><input id="mem_input" type="text" name="#SBATCH --mem=" placeholder="CPU memory" value="20g"></td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --nodelist=">#SBATCH --nodelist=</label></td>
-                            <td><input id="node_input" type="text" name="#SBATCH --nodelist=" placeholder="gpu0, gpu1, ..." value="">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><label for="#SBATCH --exclude=">#SBATCH --exclude=</label></td>
-                            <td><input id="exclude_input" type="text" name="#SBATCH --exclude=" placeholder="exclude nodes, e.g., gpu[0-6]" value=""></td>
-                        </tr>
-                        <tr>
-                            <td><label for="additional args">additional args</label></td>
-                            <td><input type="text" name="additional args" placeholder="--arg1 value1; --arg2 value2; --arg3" value=""></td>
-                        </tr>
-                        <tr>
-                            <td><label for="job_script"><strong>job scripts</strong></label></td>
-                            <td><textarea name="job_script" style="width:600px;height:300px;" form="job_form" placeholder="echo 'Hello world??'" required></textarea></td>
-                        </tr>
-                        <tr>
-                            <td>interactive: code</td>
-                            <td><input type="checkbox" id="code_tunnel" name="interactive_code" value="code"></td>
-                        </tr>
-                        <tr>
-                            <td>interactive: sshd</td>
-                            <td><input type="checkbox" id="sshd" name="interactive_sshd" value="sshd" checked></td>
-                        </tr>
-                        <tr>
-                            <td>wait?</td>
-                            <td><input type="checkbox" id="wait" name="is_wait" value="wait"></td>
-                        </tr>
-                        <tr>
-                            <td>final stage?</td>
-                            <td><input type="checkbox" id="final" name="final_stage" value="final" placeholder="final"></td>
-                        </tr>
+                            </div>
+                            <div>
+                                <label for="#SBATCH -p" class="block"><strong>#SBATCH -p</strong></label>
+                                <select name="#SBATCH -p " id="partition_input" type="text"
+                                        onchange="OnPartitionChanged(this)" onload="OnPartitionChanged(this)"
+                                        name="#SBATCH -p " style="font-size:14px;"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        required>
+                                    <option value="res-gpu-small">[NCC] res-gpu-small</option>
+                                    <option value="res-gpu-large">[NCC] res-gpu-large</option>
+                                    <option value="gpu-bigmem">[NCC] gpu-bigmem</option>
+                                    <option value="gpu-private">[NCC] gpu-toby0</option>
+                                    <option value="cpu">[NCC] cpu</option>
+                                    <option value="infer">[Bede] infer (cpu)</option>
+                                    <option value="gpu">[Bede] gpu</option>
+                                    <option value="test">[Bede] gpu test</option>
+                                    <option value="gh">[Bede] gh (GH200)</option>
+                                    <option value="ghlogin">[Bede] ghlogin (GH200)</option>
+                                    <option value="ghtest">[Bede] ghtest (GH200)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="#SBATCH --qos" class="block"><strong>#SBATCH --qos</strong></label>
+                                <select name="#SBATCH --qos " id="qos_input" type="text" name="#SBATCH --qos "
+                                        onchange="OnQoSChanged(this)" onload="OnQoSChanged(this)"
+                                        style="font-size:14px;"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        required>
+                                    <option value="short">[NCC] short</option>
+                                    <option value="long-high-prio">[NCC] long-high-prio</option>
+                                    <option value="long-low-prio">[NCC] long-low-prio</option>
+                                    <option value="mznv82-qos">[NCC] mznv82-qos</option>
+                                    <option value="debug">[NCC] debug</option>
+                                    <option value="long-cpu">[NCC] long-cpu</option>
+                                    <option value="normal">[Bede] normal</option>
+                                    <option value="test">[Bede] test</option>
+                                    <option value="ghtest">[Bede] ghtest (GH200)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="#SBATCH --nodes="><strong>#SBATCH --nodes=</strong></label>
+                                <input type="number" name="#SBATCH --nodes=" placeholder="1" value="1"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                       required>
+                            </div>
+                            <div>
+                                <label for="#SBATCH --time="><strong>#SBATCH --time=</strong></label>
+                                <input id="time_input" type="text" name="#SBATCH --time=" placeholder="24:00:00"
+                                       value="2-00:00:00"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                       required>
+                            </div>
+                            <div>
+                                <label for="#SBATCH --chdir "><strong>#SBATCH --chdir </strong></label>
+                                <input type="text" name="#SBATCH --chdir " placeholder="working directory"
+                                       value="{{ htmldata.defaults.home_folder }}"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                       required>
+                            </div>
+                            <div>
+                                <label for="#SBATCH --cpus-per-task "><strong>#SBATCH --cpus-per-task</strong></label>
+                                <input type="number" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                       required>
+                            </div>
+                            <div>
+                                <label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label>
+                                <input type="text" name="#SBATCH --gres=gpu:"
+                                       placeholder="gpu number; leave empty if cpu only"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                       value="1">
+                            </div>
+                            <div>
+                                <label for="#SBATCH --mem=">#SBATCH --mem=</label>
+                                <input id="mem_input" type="text" name="#SBATCH --mem=" placeholder="CPU memory"
+                                       value="20g"
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="#SBATCH --nodelist=">#SBATCH --nodelist=</label>
+                                <input id="node_input" type="text" name="#SBATCH --nodelist="
+                                       placeholder="gpu0, gpu1, ..." value=""
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="#SBATCH --exclude=">#SBATCH --exclude=</label>
+                                <input id="exclude_input" type="text" name="#SBATCH --exclude="
+                                       placeholder="exclude nodes, e.g., gpu[0-6]" value=""
+                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <div>
+                                <label for="additional args">additional args</label>
+                                <input type="text" name="additional args"
+                                       placeholder="--arg1 value1; --arg2 value2; --arg3" value=""
+                                       class=" mb-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="job_script" class="block"><strong>job scripts</strong></label>
+                                <textarea name="job_script" style="width:600px;height:300px;" form="job_form"
+                                          placeholder="echo 'Hello world??'"
+                                          class=" mb-4 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                          required></textarea>
+                            </div>
+                        </div>
 
 
+                        <div class="grid gap-6 mb-6 md:grid-cols-2">
+                        <div>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="code_tunnel" name="interactive_code" value="code"
+                                       class="sr-only peer">
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">interactive: code</span>
+                            </label>
+                        </div>
 
-                    </table>
-                    <input type="submit" value="Submit" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    <p id="message"></p>
-                </form>
-            </div>
+                        <div>
+                            <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="sshd" name="interactive_sshd" value="sshd" checked
+                                       class="sr-only peer">
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">interactive: sshd</span>
+                            </label>
+                        </div>
 
-            <div id="add_upload_json_form">
-                <form action="/slurm/load_json_job" method="post" id="upload_json_form">
-                    <table class="form_table">
-                        <tr>
-                            <td><label for="load_json_path">json path:</label></td>
-                            <td><input type="text" style="width:500px;" name="load_json_path" placeholder=".logs/job_scripts/XXXX/XXXX.json" value="{{ htmldata.defaults.home_folder }}" required></td>
-                        </tr>
-                    </table>
-                    <input type="submit" value="Load" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    <p id="message_json"></p>
-                </form>
-            </div>
+                        <div>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="wait" name="is_wait" value="wait"
+                                       class="sr-only peer">
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">wait?</span>
+                            </label>
+                        </div>
 
-            <div id="add_attach_form">
-                <form action="/slurm/attach_job" method="post" id="attach_form">
-                    <table class="form_table">
-                        <tr>
-                            <td><label for="name"><strong>Job name</strong></label></td>
-                            <td><input type="text" class="caret-pink-500" name="name" placeholder="name" value="{{ htmldata.defaults.name }}" required></td>
-                        </tr>
-                        <tr>
-                            <td><label for="job_script"><strong>job scripts</strong></label></td>
-                            <td><textarea name="job_script" class="caret-pink-500" style="width:600px;height:300px;" form="attach_form" placeholder="echo 'Hello world??'" required></textarea></td>
-                        </tr>
+                        <div>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="final" name="final_stage" value="final" placeholder="final"
+                                       class="sr-only peer">
+                                <div
+                                    class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">final stage?</span>
+                            </label>
+                        </div>
 
-                    </table>
-                    <input type="submit" value="Attach" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    <p id="message_attach"></p>
-                </form>
+                        </div>
+
+                        <input type="submit" value="Submit"
+                               class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 ">
+                        <p id="message"></p>
+
+                    </form>
+                </div>
+
+                <div id="add_upload_json_form">
+                    <form action="/slurm/load_json_job" method="post" id="upload_json_form">
+                        <table class="form_table">
+                            <tr>
+                                <td><label for="load_json_path">json path:</label></td>
+                                <td><input type="text" style="width:500px;" name="load_json_path"
+                                           placeholder=".logs/job_scripts/XXXX/XXXX.json"
+                                           value="{{ htmldata.defaults.home_folder }}" required></td>
+                            </tr>
+                        </table>
+                        <input type="submit" value="Load"
+                               class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 ">
+                        <p id="message_json"></p>
+                    </form>
+                </div>
+
+                <div id="add_attach_form">
+                    <form action="/slurm/attach_job" method="post" id="attach_form">
+                        <table class="form_table">
+                            <tr>
+                                <td><label for="name"><strong>Job name</strong></label></td>
+                                <td><input type="text" class="caret-pink-500" name="name" placeholder="name"
+                                           value="{{ htmldata.defaults.name }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><label for="job_script"><strong>job scripts</strong></label></td>
+                                <td><textarea name="job_script" class="caret-pink-500" style="width:600px;height:300px;"
+                                              form="attach_form" placeholder="echo 'Hello world??'" required></textarea>
+                                </td>
+                            </tr>
+
+                        </table>
+                        <input type="submit" value="Attach"
+                               class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 ">
+                        <p id="message_attach"></p>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="text-center p-4 border-t border-zinc-400 dark:border-zinc-600 bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-900 dark:to-zinc-900">
-    <a href="https://www.luisli.org" target="_blank" class="text-zinc-300 hover:text-zinc-200 dark:hover:text-zinc-400">Li (Luis) Li</a> &copy; 2024 | <a href="https://github.com/l1997i/slurm_gui" target="_blank" class="text-zinc-300 hover:text-zinc-200 dark:hover:text-zinc-400">HPC Helper</a> - Empowering your HPC journey @Durham, all solutions in one | v0.1.0 | Powered by <a href="https://palletsprojects.com/p/flask/" target="_blank" class="text-zinc-300 hover:text-zinc-200 dark:hover:text-zinc-400">Flask</a>
-</div>
-
+<footer class="bg-white rounded-lg shadow m-4 dark:bg-gray-800 border border-gray-200">
+    <div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
+        <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">
+            © 2024 <a href="https://github.com/l1997i/slurm_gui" target="_blank" class="hover:underline">HPC Helper</a>. All Rights Reserved.
+        </span>
+        <ul class="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
+            <li>
+                <a href="https://www.luisli.org" target="_blank" class="hover:underline me-4 md:me-6">Li (Luis) Li</a>
+            </li>
+            <li>
+                <a href="#" class="hover:underline me-4 md:me-6">Privacy Policy</a>
+            </li>
+            <li>
+                <a href="#" class="hover:underline me-4 md:me-6">Licensing</a>
+            </li>
+            <li>
+                <a href="#" class="hover:underline">Contact</a>
+            </li>
+            <!-- Dark Mode Toggle Button -->
+            <li>
+                <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-light-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                </button>
+            </li>
+        </ul>
+    </div>
+</footer>
 
 
 {% endblock %}

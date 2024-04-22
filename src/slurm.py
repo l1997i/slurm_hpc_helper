@@ -383,48 +383,64 @@ def cli(command,return_err = False):
         return out[0].decode("latin-1")
     
 def formatSinfo(sinfo):
-    res = '<tr><th>Partition</th><th>Availability</th><th>Timelimit</th><th>Nodes</th><th>State</th><th>Nodelist</th></tr>'
+    res = '<table class="w-full text-sm text-center rtl:text-center text-gray-500 dark:text-gray-400">'
+    res += '<thead class="text-xs text-center text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += '<tr><th>Partition</th><th>Avail</th><th>Timelimit</th><th>Nodes</th><th>State</th><th>Nodelist</th></tr>'
+    res += '</thead>'
+    res += '<tbody>'
     for idx, line in enumerate(sinfo.split('\n')):
         if idx:
             fields = line.split()
-            l = "<tr>"
+            l = '<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 text-center">'
             for f in fields:
                 if 'drain' in f or 'alloc' in f or 'down' in f or 'drng' in f:
-                    l += f'<td style="color:#FE5F58">{f}</td>'
+                    l += f'<td><div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div>{f}</div></td>'
                     continue
                 if 'idle' in f:
-                    l += f'<td style="color:#28C73F">{f}</td>'
+                    l += f'<td><div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div>{f}</div></td>'
                     continue
                 elif 'mix' in f or 'comp' in f:
-                    l += f'<td style="color:#FEBB2C">{f}</td>'
+                    l += f'<td><div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-yellow-500 me-2"></div>{f}</div></td>'
                     continue
                 else:
                     l += f'<td>{f}</td>'
                     continue
             l += "</tr>"
             res += l
-        res += line
+    res += '</tbody>'
+    res += '</table>'
     return res 
 
 def formatSacct(sacct):
-    res = '<tr><th>JOBID</th><th>Partition</th><th>Name</th><th>User</th><th>ST</th><th>Time</th><th>Nodes</th><th>Nodelist</th></tr>'
+    res = '<table class="w-full text-sm text-center rtl:text-center text-gray-500 dark:text-gray-400">'
+    res += '<thead class="text-xs text-center text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += '<tr><th>JOBID</th><th>Partition</th><th>Name</th><th>User</th><th>ST</th><th>Time</th><th>Nodes</th><th>Nodelist</th></tr>'
+    res += '</thead>'
+    res += '<tbody>'
     for idx, line in enumerate(sacct.split('\n')):
         if idx:
             fields = line.split()
-            l = "<tr>"
+            l = '<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 text-center">'
             for f in fields:
                 l += f'<td>{f}</td>'
             l += "</tr>"
             res += l
+    res += '</tbody>'
+    res += '</table>'
     return res
 
 def generateJobList(jobs):
-    res = '<tr><th>JOBID</th><th>Nodelist</th><th>Name</th><th>State</th><th>SubmitOn</th><th>PID_1</th><th>PID_2</th></tr>'
+    res = '<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += f'<tr><th>JOBID</th><th>Nodelist</th><th>Name</th><th>State</th><th>SubmitOn</th><th>PID_1</th><th>PID_2</th></tr>'
+    res += f'</thead>'
+    res += '<tbody>'
     for job in jobs.values():
         if job["state"] == 'R' or job["state"] == 'PD':
             timestamp = os.path.basename(job["ts"])
             dt = datetime.fromtimestamp(int(timestamp)).strftime('%m-%d %H:%M:%S')
             res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["node"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td><td style="color:#28C73F">{job["pid_1"]}</td><td style="color:#FE5F58">{job["pid_2"]}</td></tr>'
+    res += f'</tbody>'
+    res += f'</table>'
     return res
 
 manager = SlurmManager()
