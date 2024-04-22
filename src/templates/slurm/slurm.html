@@ -243,32 +243,33 @@
 
 {% block content %}
     <div
-        class="overscroll-auto flex flex-col auto-cols-max lg:flex-row gap-8 p-8 transition duration-500 ease-in-out">
+    class="overscroll-auto flex flex-col auto-cols-max lg:flex-row gap-8 p-8 transition duration-500 ease-in-out" style="max-width: 100vw; overflow-x: hidden;">
+
     <div class="flex-1 overflow-auto rounded-lg space-y-6">
             <div
-            class="overflow-auto max-h-48 p-4 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+            class="overflow-auto max-h-48 p-4 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700"
                 id="job_scroll">
-            <table id="jobs" class="w-full table-auto bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"></table>
+            <table id="jobs" class="w-full table-auto bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700"></table>
             </div>
             <div
-                class="overflow-auto overscroll-none max-h-96 p-4 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+            class="overflow-auto overscroll-none max-h-96 p-4 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700"
                 id="sacct">Loading
             </div>
             <div
-                class="overflow-auto overscroll-none max-h-96 p-4 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
+            class="overflow-auto overscroll-none max-h-96 p-4 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700"
                 id="sinfo">Loading
             </div>
             <div
-                class="console overflow-auto overscroll-none max-h-96 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
-                id="job_script">Please select a job, and your script will be shown here
+            class="console overflow-auto overscroll-none max-h-96 p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700"
+            id="job_script"><p class="text-gray-700 dark:text-gray-400">Please select a job, and your script will be shown here. </p>
             </div>
             <div
-            class="console overflow-auto overscroll-none max-h-96 bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200"
-                id="output">Please select a job, and your slurm output will be shown here
+            class="console overflow-auto overscroll-none max-h-96 p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700"
+            id="output"><p class="text-gray-700 dark:text-gray-400">Please select a job, and your slurm output will be shown here. </p>
             </div>
         </div>
         <div
-            class="flex-1 overflow-auto bg-white dark:bg-gray-950 rounded-lg shadow-lg p-6 border border-gray-200">
+        class="flex-1 overflow-auto p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700">
             <div class="p-4">
 
             <div class="inline-flex rounded-md shadow-sm" role="group">
@@ -317,13 +318,13 @@
                     <form action="/slurm/submit_job" method="post" id="job_form">
                         <div class="grid gap-6 mb-6 md:grid-cols-2">
                             <div>
-                                <label for="name"><strong>Job name</strong></label>
+                            <label for="name" class="text-gray-700 dark:text-gray-400"><strong>Job name</strong></label>
                                 <input type="text" name="name" placeholder="name" value="{{ htmldata.defaults.name }}"
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                        required>
                             </div>
                             <div>
-                                <label for="#SBATCH -A" class="block"><strong>#SBATCH -A</strong></label>
+                            <label for="#SBATCH -A" class="block text-gray-700 dark:text-gray-400"><strong>#SBATCH -A</strong></label>
                                 <select name="#SBATCH -A " placeholder="account" value="{{ htmldata.defaults.account }}"
                                         type="text" style="font-size:14px;"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -333,7 +334,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="#SBATCH -p" class="block"><strong>#SBATCH -p</strong></label>
+                            <label for="#SBATCH -p" class="block text-gray-700 dark:text-gray-400"><strong>#SBATCH -p</strong></label>
                                 <select name="#SBATCH -p " id="partition_input" type="text"
                                         onchange="OnPartitionChanged(this)" onload="OnPartitionChanged(this)"
                                         name="#SBATCH -p " style="font-size:14px;"
@@ -353,7 +354,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="#SBATCH --qos" class="block"><strong>#SBATCH --qos</strong></label>
+                            <label for="#SBATCH --qos" class="block text-gray-700 dark:text-gray-400"><strong>#SBATCH --qos</strong></label>
                                 <select name="#SBATCH --qos " id="qos_input" type="text" name="#SBATCH --qos "
                                         onchange="OnQoSChanged(this)" onload="OnQoSChanged(this)"
                                         style="font-size:14px;"
@@ -371,52 +372,52 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="#SBATCH --nodes="><strong>#SBATCH --nodes=</strong></label>
+                            <label for="#SBATCH --nodes=" class="text-gray-700 dark:text-gray-400"><strong>#SBATCH --nodes=</strong></label>
                                 <input type="number" name="#SBATCH --nodes=" placeholder="1" value="1"
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                        required>
                             </div>
                             <div>
-                                <label for="#SBATCH --time="><strong>#SBATCH --time=</strong></label>
+                            <label for="#SBATCH --time=" class="text-gray-700 dark:text-gray-400"><strong>#SBATCH --time=</strong></label>
                                 <input id="time_input" type="text" name="#SBATCH --time=" placeholder="24:00:00"
                                        value="2-00:00:00"
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                        required>
                             </div>
                             <div>
-                                <label for="#SBATCH --chdir "><strong>#SBATCH --chdir </strong></label>
+                            <label for="#SBATCH --chdir " class="text-gray-700 dark:text-gray-400"><strong>#SBATCH --chdir </strong></label>
                                 <input type="text" name="#SBATCH --chdir " placeholder="working directory"
                                        value="{{ htmldata.defaults.home_folder }}"
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                        required>
                             </div>
                             <div>
-                                <label for="#SBATCH --cpus-per-task "><strong>#SBATCH --cpus-per-task</strong></label>
+                            <label for="#SBATCH --cpus-per-task " class="text-gray-700 dark:text-gray-400"><strong>#SBATCH --cpus-per-task</strong></label>
                                 <input type="number" name="#SBATCH --cpus-per-task " placeholder="cpu number" value="4"
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                        required>
                             </div>
                             <div>
-                                <label for="#SBATCH --gres=gpu:">#SBATCH --gres=gpu:</label>
+                            <label for="#SBATCH --gres=gpu:" class="text-gray-700 dark:text-gray-400">#SBATCH --gres=gpu:</label>
                                 <input type="text" name="#SBATCH --gres=gpu:"
                                        placeholder="gpu number; leave empty if cpu only"
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                        value="1">
                             </div>
                             <div>
-                                <label for="#SBATCH --mem=">#SBATCH --mem=</label>
+                            <label for="#SBATCH --mem=" class="text-gray-700 dark:text-gray-400">#SBATCH --mem=</label>
                                 <input id="mem_input" type="text" name="#SBATCH --mem=" placeholder="CPU memory"
                                        value="20g"
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </div>
                             <div>
-                                <label for="#SBATCH --nodelist=">#SBATCH --nodelist=</label>
+                            <label for="#SBATCH --nodelist=" class="text-gray-700 dark:text-gray-400">#SBATCH --nodelist=</label>
                                 <input id="node_input" type="text" name="#SBATCH --nodelist="
                                        placeholder="gpu0, gpu1, ..." value=""
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </div>
                             <div>
-                                <label for="#SBATCH --exclude=">#SBATCH --exclude=</label>
+                            <label for="#SBATCH --exclude=" class="text-gray-700 dark:text-gray-400">#SBATCH --exclude=</label>
                                 <input id="exclude_input" type="text" name="#SBATCH --exclude="
                                        placeholder="exclude nodes, e.g., gpu[0-6]" value=""
                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
@@ -424,13 +425,13 @@
                         </div>
                         <div class="mb-6">
                             <div>
-                                <label for="additional args">additional args</label>
+                            <label for="additional args" class="text-gray-700 dark:text-gray-400">additional args</label>
                                 <input type="text" name="additional args"
                                        placeholder="--arg1 value1; --arg2 value2; --arg3" value=""
                                        class=" mb-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </div>
                             <div>
-                                <label for="job_script" class="block"><strong>job scripts</strong></label>
+                            <label for="job_script" class="block text-gray-700 dark:text-gray-400"><strong>job scripts</strong></label>
                                 <textarea name="job_script" style="width:600px;height:300px;" form="job_form"
                                           placeholder="echo 'Hello world??'"
                                           class=" mb-4 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -441,7 +442,7 @@
 
                         <div class="grid gap-6 mb-6 md:grid-cols-2">
                         <div>
-                            <label class="inline-flex items-center cursor-pointer">
+                            <label class="inline-flex items-center cursor-pointer text-gray-700 dark:text-gray-400">
                                 <input type="checkbox" id="code_tunnel" name="interactive_code" value="code"
                                        class="sr-only peer">
                                 <div
@@ -491,14 +492,14 @@
 
                 <div id="add_upload_json_form">
                     <form action="/slurm/load_json_job" method="post" id="upload_json_form">
-                        <table class="form_table">
-                            <tr>
-                                <td><label for="load_json_path">json path:</label></td>
-                                <td><input type="text" style="width:500px;" name="load_json_path"
-                                           placeholder=".logs/job_scripts/XXXX/XXXX.json"
-                                           value="{{ htmldata.defaults.home_folder }}" required></td>
-                            </tr>
-                        </table>
+                        <div>
+                        <label for="load_json_path" class="text-gray-700 dark:text-gray-400"><strong>Load json file from ...</strong></label>
+                        <input type="text" name="load_json_path" placeholder=".logs/job_scripts/XXXX/XXXX.json"
+                               value="{{ htmldata.defaults.home_folder }}" style="width:500px;"
+                                   class="mt-4 mb-6 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                   required>
+                        </div>
+
                         <input type="submit" value="Load"
                                class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 ">
                         <p id="message_json"></p>
@@ -509,14 +510,14 @@
                     <form action="/slurm/attach_job" method="post" id="attach_form">
                         <table class="form_table">
                             <tr>
-                                <td><label for="name"><strong>Job name</strong></label></td>
-                                <td><input type="text" class="caret-pink-500" name="name" placeholder="name"
-                                           value="{{ htmldata.defaults.name }}" required></td>
+                            <td><label for="name" class="text-gray-700 dark:text-gray-400"><strong>Job name</strong></label></td>
+                                <td><input type="text" name="name" placeholder="name"
+                                           value="{{ htmldata.defaults.name }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required></td>
                             </tr>
                             <tr>
-                                <td><label for="job_script"><strong>job scripts</strong></label></td>
-                                <td><textarea name="job_script" class="caret-pink-500" style="width:600px;height:300px;"
-                                              form="attach_form" placeholder="echo 'Hello world??'" required></textarea>
+                            <td><label for="job_script" class="text-gray-700 dark:text-gray-400"><strong>job scripts</strong></label></td>
+                                <td><textarea name="job_script" style="width:600px;height:300px;"
+                                              form="attach_form" placeholder="echo 'Hello world??'" class="mb-8 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required></textarea>
                                 </td>
                             </tr>
 

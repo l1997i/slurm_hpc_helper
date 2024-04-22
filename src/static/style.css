@@ -6,22 +6,13 @@
     --color-active-dark: #003366; /* Even darker blue for active states on dark background */
     --color-selected-light: #e0f0ff; /* Very light blue for selected items on light background */
     --color-selected-dark: #336699; /* Mid-tone blue for selected items on dark background */
+    --color-bg-dark: #0A0F18;
+    --color-bg-light: #FFFFFF;
 }
 
 html, body {
     height: auto;
     overflow-y: auto;
-}
-body {
-/*    background-color: #18181B;*/
-/*    color: #ffffff;*/
-/*    font-family: 'Consolas', 'Courier New', monospace;*/
-/*    background-size: cover;*/
-/*    background-repeat: no-repeat;*/
-/*    background-attachment: fixed;*/
-    margin: 50px;
-/*    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));*/
-/*     background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://i.imgur.com/pkiX69L.jpeg");*/
 }
 
 /*input,*/
@@ -60,6 +51,10 @@ select:active {
     background-color: var(--color-selected-light);
 }
 
+html {
+    background-color: var(--color-bg-light);
+}
+
 /* Dark theme styles */
 @media (prefers-color-scheme: dark) {
     /*button:hover,*/
@@ -74,6 +69,10 @@ select:active {
 
     .selected {
         background-color: var(--color-selected-dark);
+    }
+
+    html {
+        background-color: var(--color-bg-dark);
     }
 }
 
