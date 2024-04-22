@@ -241,29 +241,27 @@
 
 
 {% block content %}
-<div class="row">
-    <div class="column" style="min-width: 45%; overflow: auto; max-height: 85vh; border: 3px solid #ccc;" id="job_scroll">
-
-        <div class="console" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;" id="job_scroll">
-            <table id="jobs">
-            </table>
+<div class="overscroll-auto flex flex-col auto-cols-max lg:flex-row gap-8 p-8 dark:bg-zinc-800 dark:text-zinc-100 transition duration-500 ease-in-out">
+    <div class="flex-1 overflow-auto rounded-lg border-3 border-zinc-400 dark:border-zinc-600 space-y-2">
+        <div class="overflow-auto max-h-48 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="job_scroll">
+            <table id="jobs" class="w-full table-auto"></table>
         </div>
-        <div class="console" id="sacct" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Loading</div>
-        <div class="console" id="sinfo" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Loading</div>
-        <div class="console" id="job_script" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your script will be shown here</div>
-        <div class="console " id="output" style="min-width: 45%; overflow: auto; max-height: 400px; border: 1px solid #ccc;">Please select a job, and your slurm output will be shown here</div>
-
+        <div class="overflow-auto overscroll-none max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="sacct">Loading</div>
+        <div class="overflow-auto overscroll-none max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="sinfo">Loading</div>
+        <div class="overflow-auto overscroll-none max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="job_script">Please select a job, and your script will be shown here</div>
+        <div class="overflow-auto max-h-96 border-2 border-zinc-400 dark:border-zinc-600 p-4 rounded-lg shadow-inner shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid" id="output">Please select a job, and your slurm output will be shown here</div>
     </div>
-    <div class="column" style="flex: 10; min-width: 50%; overflow: auto; max-height: 85vh; overflow-y: auto; border: 3px solid #ccc;">
-        <div class="console">
-            <h4> <strong>SUBMIT a job / CANCEL a job ... </strong> </h4>
-            <br>
-            <button onclick="toggle_job_form()">new</button>
-            <button onclick="toggle_load_job_form()">load</button>
-            <button onclick="cancel()">cancel</button>
-            <button onclick="kill()">kill</button>
-            <button onclick="toggle_attach_form()">attach</button>
-            <div id="add_job_form">
+    <div class="flex-1 overflow-auto rounded-lg border-2 border-zinc-400 dark:border-zinc-600 shadow-lg bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-700 dark:to-zinc-800 border-solid">
+        <div class="p-4">
+            <h4 class="font-bold text-shadow">SUBMIT a job / CANCEL a job ...</h4>
+            <div class="flex gap-4 my-4">
+                <button class="bg-zinc-600 hover:bg-zinc-800 text-white font-bold py-2 px-4 rounded shadow" onclick="toggle_job_form()">New</button>
+                <button class="bg-zinc-600 hover:bg-zinc-800 text-white font-bold py-2 px-4 rounded shadow" onclick="toggle_load_job_form()">Load</button>
+                <button class="bg-red-700 hover:bg-red-900 text-white font-bold py-2 px-4 rounded shadow" onclick="cancel()">Cancel</button>
+                <button class="bg-red-700 hover:bg-red-900 text-white font-bold py-2 px-4 rounded shadow" onclick="kill()">Kill</button>
+                <button class="bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded shadow" onclick="toggle_attach_form()">Attach</button>
+            </div>
+            <div id="add_job_form" class="overflow-auto my-4">
                 <form action="/slurm/submit_job" method="post" id="job_form">
                     <table class="form_table">
                         <tr>
@@ -273,10 +271,10 @@
                         <tr>
                             <td><label for="#SBATCH -A"><strong>#SBATCH -A</strong></label></td>
                             <td><select name="#SBATCH -A " placeholder="account" value="{{ htmldata.defaults.account }}"  type="text" style="font-size:14px;" required>
-                                <option value="ncc_users">NCC</option>
-                                <option value="bddur07">Bede</option>
+                                    <option value="ncc_users">NCC</option>
+                                    <option value="bddur07">Bede</option>
                                 </select>
-                                </td>
+                            </td>
                         </tr>
                         <tr>
                             <td><label for="#SBATCH -p"><strong>#SBATCH -p</strong></label></td>
@@ -292,7 +290,7 @@
                                 <option value="gh">[Bede] gh (GH200)</option>
                                 <option value="ghlogin">[Bede] ghlogin (GH200)</option>
                                 <option value="ghtest">[Bede] ghtest (GH200)</option>
-                              </select>
+                            </select>
                         </tr>
                         <tr>
                             <td><label for="#SBATCH --qos"><strong>#SBATCH --qos</strong></label></td>
@@ -306,7 +304,7 @@
                                 <option value="normal">[Bede] normal</option>
                                 <option value="test">[Bede] test</option>
                                 <option value="ghtest">[Bede] ghtest (GH200)</option>
-                              </select>
+                            </select>
                         </tr>
                         <tr>
                             <td><label for="#SBATCH --nodes="><strong>#SBATCH --nodes=</strong></label></td>
@@ -348,33 +346,32 @@
                         </tr>
                         <tr>
                             <td><label for="job_script"><strong>job scripts</strong></label></td>
-                            <td><textarea name="job_script" style="width:600px;height:300px;font-size: small;" form="job_form" placeholder="echo 'Hello world??'" required></textarea></td>
+                            <td><textarea name="job_script" style="width:600px;height:300px;" form="job_form" placeholder="echo 'Hello world??'" required></textarea></td>
                         </tr>
                         <tr>
                             <td>interactive: code</td>
-                                <td><input type="checkbox" id="code_tunnel" name="interactive_code" value="code"></td>
+                            <td><input type="checkbox" id="code_tunnel" name="interactive_code" value="code"></td>
                         </tr>
                         <tr>
                             <td>interactive: sshd</td>
-                                <td><input type="checkbox" id="sshd" name="interactive_sshd" value="sshd" checked></td>
+                            <td><input type="checkbox" id="sshd" name="interactive_sshd" value="sshd" checked></td>
                         </tr>
                         <tr>
                             <td>wait?</td>
-                                <td><input type="checkbox" id="wait" name="is_wait" value="wait"></td>
+                            <td><input type="checkbox" id="wait" name="is_wait" value="wait"></td>
                         </tr>
                         <tr>
                             <td>final stage?</td>
-                                <td><input type="checkbox" id="final" name="final_stage" value="final" placeholder="final"></td>
+                            <td><input type="checkbox" id="final" name="final_stage" value="final" placeholder="final"></td>
                         </tr>
-                        
+
 
 
                     </table>
-                    <input type="submit" value="Submit">
+                    <input type="submit" value="Submit" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                     <p id="message"></p>
                 </form>
             </div>
-            <br>
 
             <div id="add_upload_json_form">
                 <form action="/slurm/load_json_job" method="post" id="upload_json_form">
@@ -384,39 +381,36 @@
                             <td><input type="text" style="width:500px;" name="load_json_path" placeholder=".logs/job_scripts/XXXX/XXXX.json" value="{{ htmldata.defaults.home_folder }}" required></td>
                         </tr>
                     </table>
-                    <input type="submit" value="Load">
+                    <input type="submit" value="Load" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                     <p id="message_json"></p>
                 </form>
             </div>
-            <br>
 
             <div id="add_attach_form">
                 <form action="/slurm/attach_job" method="post" id="attach_form">
                     <table class="form_table">
                         <tr>
                             <td><label for="name"><strong>Job name</strong></label></td>
-                            <td><input type="text" name="name" placeholder="name" value="{{ htmldata.defaults.name }}" required></td>
+                            <td><input type="text" class="caret-pink-500" name="name" placeholder="name" value="{{ htmldata.defaults.name }}" required></td>
                         </tr>
                         <tr>
                             <td><label for="job_script"><strong>job scripts</strong></label></td>
-                            <td><textarea name="job_script" style="width:600px;height:300px;font-size: small;" form="attach_form" placeholder="echo 'Hello world??'" required></textarea></td>
+                            <td><textarea name="job_script" class="caret-pink-500" style="width:600px;height:300px;" form="attach_form" placeholder="echo 'Hello world??'" required></textarea></td>
                         </tr>
 
                     </table>
-                    <input type="submit" value="Attach">
+                    <input type="submit" value="Attach" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                     <p id="message_attach"></p>
                 </form>
             </div>
-            <br>
         </div>
-
     </div>
-
 </div>
 
-<div class="footer-text">
-    <a href="https://www.luisli.org" target="_blank">Li (Luis) Li </a> &copy; 2024 | <a href="https://github.com/l1997i/slurm_gui" target="_blank">HPC Helper</a> - Empowering your HPC journey @Durham, all solutions in one | v0.1.0 | Powered by <a href="https://palletsprojects.com/p/flask/" target="_blank">Flask</a>
+<div class="text-center p-4 border-t border-zinc-400 dark:border-zinc-600 bg-gradient-to-r from-zinc-700 to-zinc-800 dark:from-zinc-900 dark:to-zinc-900">
+    <a href="https://www.luisli.org" target="_blank" class="text-zinc-300 hover:text-zinc-200 dark:hover:text-zinc-400">Li (Luis) Li</a> &copy; 2024 | <a href="https://github.com/l1997i/slurm_gui" target="_blank" class="text-zinc-300 hover:text-zinc-200 dark:hover:text-zinc-400">HPC Helper</a> - Empowering your HPC journey @Durham, all solutions in one | v0.1.0 | Powered by <a href="https://palletsprojects.com/p/flask/" target="_blank" class="text-zinc-300 hover:text-zinc-200 dark:hover:text-zinc-400">Flask</a>
 </div>
+
 
 
 {% endblock %}

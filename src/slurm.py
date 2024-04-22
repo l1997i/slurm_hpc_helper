@@ -1,6 +1,5 @@
-from flask import Blueprint,render_template,session, request, redirect,url_for, escape
+from flask import Blueprint, render_template, session, escape, request
 from flask_login import login_required
-import flask
 import subprocess
 import threading
 import shutil
@@ -44,11 +43,14 @@ def slurm():
 @bp.route('/attach_job', methods=['POST'])
 @login_required
 def attachJob():
+    if 'g_selected_job_id' not in globals():
+        return ('', 204)
+    job_id = globals()['g_selected_job_id']
     name = request.form['name']
-    job_id = g_selected_job_id
     script = request.form['job_script']
     manager.attachJob(job_id, name, script)
     return ('', 204)
+
 
 @bp.route('/load_json_job', methods=['POST'])
 @login_required

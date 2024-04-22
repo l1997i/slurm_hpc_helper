@@ -1,13 +1,29 @@
 {% extends 'base.html' %}
 
-{% block title %}Log In{% endblock %}
+{% block title %}Access Portal{% endblock %}
 
 
 {% block content %}
-<p>Please login to continue. </p>
-  <form method="post">
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Log In">
-  </form>
+
+<body class="flex justify-center items-center h-screen bg-zinc-100 dark:bg-zinc-800">
+  <div
+    class="p-8 rounded-lg shadow-2xl backdrop-filter backdrop-blur-md max-w-sm w-full mx-auto"
+    style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.18);"
+  >
+    <h2 class="text-3xl font-bold mb-4 text-center">Access Portal
+    </h2>
+    <form method="post">
+      <div class="mb-6">
+        <label for="password" class="block mb-2 text-sm font-medium">Access Password</label>
+        <input type="password" name="password" id="password" class="bg-zinc-800 bg-opacity-50 border border-zinc-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Enter password" required>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Login</button>
+    </form>
+  </div>
+  <style>
+    body {
+    background: linear-gradient(90deg, rgba(131,58,180,1) 0%, rgba(253,29,29,1) 50%, rgba(252,176,69,1) 100%);
+    }
+  </style>
+</body>
 {% endblock %}

@@ -5,20 +5,54 @@
 
 {% block content %}
 
-<p>
-    <h2>Slurm GUI</h2>
-        <div class="indent">
-        <li><a href="{{url_for('slurm.slurm')}}">Slurm</a></li>
+<div class="max-w-lg mx-auto bg-white dark:bg-zinc-800 shadow-lg rounded-lg overflow-hidden">
+    <div class="px-6 py-4">
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Slurm GUI</h2>
+        <ul class="list-none">
+            <li class="mb-2">
+                <a
+                    href="{{url_for('slurm.slurm')}}"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >Slurm</a
+                >
+            </li>
+        </ul>
     </div>
-    <h2>Monitoring</h2>
-        <div class="indent">
-        <li><a href="http://ncc.clients.dur.ac.uk/grafana/d/5UwAWAzWk/slurm-jobs?orgId=1&var-job=All&from=now-6h&to=now" target="_blank">NCC Performance</a></li>
+    <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Monitoring</h2>
+        <ul class="list-none">
+            <li class="mb-2">
+                <a
+                    href="http://ncc.clients.dur.ac.uk/grafana/d/5UwAWAzWk/slurm-jobs?orgId=1&var-job=All&from=now-6h&to=now"
+                    target="_blank"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >NCC Performance</a
+                >
+            </li>
+        </ul>
     </div>
-    <h2>Documentation</h2>
-        <div class="indent">
-        <li><a href="https://ncc1.clients.dur.ac.uk/" target="_blank">NCC @ Durham</a></li>
-        <li><a href="https://bede-documentation.readthedocs.io/en/latest/" target="_blank">Bede</a></li>
+    <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Documentation</h2>
+        <ul class="list-none">
+            <li class="mb-2">
+                <a
+                    href="https://ncc1.clients.dur.ac.uk/"
+                    target="_blank"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >NCC @ Durham</a
+                >
+            </li>
+            <li>
+                <a
+                    href="https://bede-documentation.readthedocs.io/en/latest/"
+                    target="_blank"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >Bede</a
+                >
+            </li>
+        </ul>
     </div>
-</p>
+</div>
+
 
 {% endblock %}

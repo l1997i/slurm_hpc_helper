@@ -16,6 +16,7 @@
             display: inline-block;
         }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
 <title>{% block title %}{% endblock %} - HPC Helper</title>
@@ -40,5 +41,5 @@
     </header>
     {% for message in get_flashed_messages() %}
     <div class="flash">{{ message }}</div>
-    {% endfor %} {% block content %}{% endblock %}
+    {% endfor %} <div class="mt-8 overscroll-auto">{% block content %}{% endblock %}</div>
 </section>

@@ -1,3 +1,7 @@
+html, body {
+    height: auto;
+    overflow-y: auto;
+}
 body {
     background-color: #282A36;
     color: #ffffff;
@@ -86,6 +90,10 @@ input {
     font-family: Consolas, 'Courier New', Courier;
     font-size: 14px;
     line-height: 1.3em;
+}
+
+tr.selectable td, tr.selectable th {
+    border: none !important;
 }
 
 .console {
