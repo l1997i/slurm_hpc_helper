@@ -384,23 +384,23 @@ def cli(command,return_err = False):
     
 def formatSinfo(sinfo):
     res = '<table class="w-full text-sm text-center rtl:text-center text-gray-500 dark:text-gray-400">'
-    res += '<thead class="text-xs text-center text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += '<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
     res += '<tr><th>Partition</th><th>Avail</th><th>Timelimit</th><th>Nodes</th><th>State</th><th>Nodelist</th></tr>'
     res += '</thead>'
     res += '<tbody>'
     for idx, line in enumerate(sinfo.split('\n')):
         if idx:
             fields = line.split()
-            l = '<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 text-center">'
+            l = '<tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800">'
             for f in fields:
                 if 'drain' in f or 'alloc' in f or 'down' in f or 'drng' in f:
-                    l += f'<td><div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div>{f}</div></td>'
+                    l += f'<td><span class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">{f}</span></td>'
                     continue
                 if 'idle' in f:
-                    l += f'<td><div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div>{f}</div></td>'
+                    l += f'<td><span class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">{f}</span></td>'
                     continue
                 elif 'mix' in f or 'comp' in f:
-                    l += f'<td><div class="flex items-center"><div class="h-2.5 w-2.5 rounded-full bg-yellow-500 me-2"></div>{f}</div></td>'
+                    l += f'<td><span class="bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">{f}</span></td>'
                     continue
                 else:
                     l += f'<td>{f}</td>'
@@ -413,14 +413,14 @@ def formatSinfo(sinfo):
 
 def formatSacct(sacct):
     res = '<table class="w-full text-sm text-center rtl:text-center text-gray-500 dark:text-gray-400">'
-    res += '<thead class="text-xs text-center text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += '<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
     res += '<tr><th>JOBID</th><th>Partition</th><th>Name</th><th>User</th><th>ST</th><th>Time</th><th>Nodes</th><th>Nodelist</th></tr>'
     res += '</thead>'
     res += '<tbody>'
     for idx, line in enumerate(sacct.split('\n')):
         if idx:
             fields = line.split()
-            l = '<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 text-center">'
+            l = '<tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">'
             for f in fields:
                 l += f'<td>{f}</td>'
             l += "</tr>"
