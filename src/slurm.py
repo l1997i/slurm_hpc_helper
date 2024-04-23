@@ -1,6 +1,5 @@
-from flask import Blueprint,render_template,session, request, redirect,url_for, escape
+from flask import Blueprint, render_template, session, escape, request
 from flask_login import login_required
-import flask
 import subprocess
 import threading
 import shutil
@@ -44,11 +43,14 @@ def slurm():
 @bp.route('/attach_job', methods=['POST'])
 @login_required
 def attachJob():
+    if 'g_selected_job_id' not in globals():
+        return ('', 204)
+    job_id = globals()['g_selected_job_id']
     name = request.form['name']
-    job_id = g_selected_job_id
     script = request.form['job_script']
     manager.attachJob(job_id, name, script)
     return ('', 204)
+
 
 @bp.route('/load_json_job', methods=['POST'])
 @login_required
@@ -124,11 +126,11 @@ def submitJob():
     with open(user_sh_loc, 'w') as file:
         file.write(request.form['job_script'].replace('\r\n','\n'))
     shutil.copy(user_sh_loc, temp_sh_loc)
-    job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py {temp_sh_loc} ${{SLURM_JOB_ID}}_1"
+    job_script += f"python3 ${{PY_SCRIPT_PATH}}/run_script.py {temp_sh_loc} ${{SLURM_JOB_ID}}_1"
     
     if final_stage_enabled:
         job_script += '\n########################### 2nd STAGE <<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
-        job_script += f"python ${{PY_SCRIPT_PATH}}/run_script.py ${{SH_SCRIPT_PATH}}/{final_sh_loc} ${{SLURM_JOB_ID}}_2"
+        job_script += f"python3 ${{PY_SCRIPT_PATH}}/run_script.py ${{SH_SCRIPT_PATH}}/{final_sh_loc} ${{SLURM_JOB_ID}}_2"
     if is_wait:
         job_script += '\nwait'
     
@@ -381,48 +383,64 @@ def cli(command,return_err = False):
         return out[0].decode("latin-1")
     
 def formatSinfo(sinfo):
-    res = '<tr><th>Partition</th><th>Availability</th><th>Timelimit</th><th>Nodes</th><th>State</th><th>Nodelist</th></tr>'
+    res = '<table class="w-full text-sm text-center rtl:text-center text-gray-500 dark:text-gray-400">'
+    res += '<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += '<tr><th>Partition</th><th>Avail</th><th>Timelimit</th><th>Nodes</th><th>State</th><th>Nodelist</th></tr>'
+    res += '</thead>'
+    res += '<tbody>'
     for idx, line in enumerate(sinfo.split('\n')):
         if idx:
             fields = line.split()
-            l = "<tr>"
+            l = '<tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800">'
             for f in fields:
                 if 'drain' in f or 'alloc' in f or 'down' in f or 'drng' in f:
-                    l += f'<td style="color:#FE5F58">{f}</td>'
+                    l += f'<td><span class="bg-red-100 text-red-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">{f}</span></td>'
                     continue
                 if 'idle' in f:
-                    l += f'<td style="color:#28C73F">{f}</td>'
+                    l += f'<td><span class="bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">{f}</span></td>'
                     continue
                 elif 'mix' in f or 'comp' in f:
-                    l += f'<td style="color:#FEBB2C">{f}</td>'
+                    l += f'<td><span class="bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">{f}</span></td>'
                     continue
                 else:
                     l += f'<td>{f}</td>'
                     continue
             l += "</tr>"
             res += l
-        res += line
+    res += '</tbody>'
+    res += '</table>'
     return res 
 
 def formatSacct(sacct):
-    res = '<tr><th>JOBID</th><th>Partition</th><th>Name</th><th>User</th><th>ST</th><th>Time</th><th>Nodes</th><th>Nodelist</th></tr>'
+    res = '<table class="w-full text-sm text-center rtl:text-center text-gray-500 dark:text-gray-400">'
+    res += '<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += '<tr><th>JOBID</th><th>Partition</th><th>Name</th><th>User</th><th>ST</th><th>Time</th><th>Nodes</th><th>Nodelist</th></tr>'
+    res += '</thead>'
+    res += '<tbody>'
     for idx, line in enumerate(sacct.split('\n')):
         if idx:
             fields = line.split()
-            l = "<tr>"
+            l = '<tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">'
             for f in fields:
                 l += f'<td>{f}</td>'
             l += "</tr>"
             res += l
+    res += '</tbody>'
+    res += '</table>'
     return res
 
 def generateJobList(jobs):
-    res = '<tr><th>JOBID</th><th>Nodelist</th><th>Name</th><th>State</th><th>SubmitOn</th><th>PID_1</th><th>PID_2</th></tr>'
+    res = '<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">'
+    res += f'<tr><th>JOBID</th><th>Nodelist</th><th>Name</th><th>State</th><th>SubmitOn</th><th>PID_1</th><th>PID_2</th></tr>'
+    res += f'</thead>'
+    res += '<tbody>'
     for job in jobs.values():
         if job["state"] == 'R' or job["state"] == 'PD':
             timestamp = os.path.basename(job["ts"])
             dt = datetime.fromtimestamp(int(timestamp)).strftime('%m-%d %H:%M:%S')
             res += f'<tr class="selectable" id="{job["id"]}"><td>{job["id"]}</td><td>{job["node"]}</td><td>{job["name"]}</td><td>{job["state"]}</td><td>{dt}</td><td style="color:#28C73F">{job["pid_1"]}</td><td style="color:#FE5F58">{job["pid_2"]}</td></tr>'
+    res += f'</tbody>'
+    res += f'</table>'
     return res
 
 manager = SlurmManager()

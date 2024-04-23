@@ -1,13 +1,22 @@
 {% extends 'base.html' %}
 
-{% block title %}Log In{% endblock %}
+{% block title %}Access Portal{% endblock %}
 
 
 {% block content %}
-<p>Please login to continue. </p>
-  <form method="post">
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Log In">
-  </form>
+
+<body class="flex justify-center items-center h-screen bg-zinc-100 dark:bg-zinc-800">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
+    <h1 class="text-3xl font-semibold text-center text-zinc-900 dark:text-black">Welcome back</h1>
+      <p class="text-zinc-600 text-center mt-2">Sign in to your account to continue</p>
+    <form class="mt-8" method="post">
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-zinc-700">Password</label>
+          <input type="password" id="password" name="password" class="mt-1 p-2 w-full border rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        </div>
+        <button type="submit" class="w-full bg-black text-white p-3 rounded-lg hover:bg-zinc-800">Sign in</button>
+      </form>
+    </div>
+</body>
 {% endblock %}

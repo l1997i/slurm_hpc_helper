@@ -7,7 +7,7 @@
             margin: 0;
             padding: 0em;
             overflow: hidden;
-            background-color: rgba(0, 153, 255, 0.116);
+            background-color: #18181B;
             align-items: center;
         }
         
@@ -16,6 +16,17 @@
             display: inline-block;
         }
     </style>
+    <script>
+        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+
+        // Include Tailwind CSS via CDN
+        document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
+    </script>
 </head>
 <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
 <title>{% block title %}{% endblock %} - HPC Helper</title>
@@ -40,5 +51,5 @@
     </header>
     {% for message in get_flashed_messages() %}
     <div class="flash">{{ message }}</div>
-    {% endfor %} {% block content %}{% endblock %}
+    {% endfor %} <div class="overscroll-auto">{% block content %}{% endblock %}</div>
 </section>

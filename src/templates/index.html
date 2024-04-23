@@ -5,20 +5,82 @@
 
 {% block content %}
 
-<p>
-    <h2>Slurm GUI</h2>
-        <div class="indent">
-        <li><a href="{{url_for('slurm.slurm')}}">Slurm</a></li>
+<div class="max-w-lg mx-auto bg-white dark:bg-zinc-800 shadow-lg rounded-lg overflow-hidden mt-6">
+    <div class="px-6 py-4">
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Slurm GUI</h2>
+        <ul class="list-none">
+            <li class="mb-2">
+                <a
+                    href="{{url_for('slurm.slurm')}}"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >Slurm</a
+                >
+            </li>
+        </ul>
     </div>
-    <h2>Monitoring</h2>
-        <div class="indent">
-        <li><a href="http://ncc.clients.dur.ac.uk/grafana/d/5UwAWAzWk/slurm-jobs?orgId=1&var-job=All&from=now-6h&to=now" target="_blank">NCC Performance</a></li>
+    <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Monitoring</h2>
+        <ul class="list-none">
+            <li class="mb-2">
+                <a
+                    href="http://ncc.clients.dur.ac.uk/grafana/d/5UwAWAzWk/slurm-jobs?orgId=1&var-job=All&from=now-6h&to=now"
+                    target="_blank"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >NCC Performance</a
+                >
+            </li>
+        </ul>
     </div>
-    <h2>Documentation</h2>
-        <div class="indent">
-        <li><a href="https://ncc1.clients.dur.ac.uk/" target="_blank">NCC @ Durham</a></li>
-        <li><a href="https://bede-documentation.readthedocs.io/en/latest/" target="_blank">Bede</a></li>
+    <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">Documentation</h2>
+        <ul class="list-none">
+            <li class="mb-2">
+                <a
+                    href="https://ncc1.clients.dur.ac.uk/"
+                    target="_blank"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >NCC @ Durham</a
+                >
+            </li>
+            <li>
+                <a
+                    href="https://bede-documentation.readthedocs.io/en/latest/"
+                    target="_blank"
+                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                >Bede</a
+                >
+            </li>
+        </ul>
     </div>
-</p>
+</div>
+
+<footer class="bg-white rounded-lg shadow m-4 dark:bg-gray-800 border border-gray-200">
+    <div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
+        <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">
+            © 2024 <a href="https://github.com/l1997i/slurm_gui" target="_blank" class="hover:underline">HPC Helper</a>. All Rights Reserved.
+        </span>
+        <ul class="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
+            <li>
+                <a href="https://www.luisli.org" target="_blank" class="hover:underline me-4 md:me-6">Li (Luis) Li</a>
+            </li>
+            <li>
+                <a href="#" class="hover:underline me-4 md:me-6">Privacy Policy</a>
+            </li>
+            <li>
+                <a href="#" class="hover:underline me-4 md:me-6">Licensing</a>
+            </li>
+            <li>
+                <a href="#" class="hover:underline">Contact</a>
+            </li>
+            <!-- Dark Mode Toggle Button -->
+            <li>
+                <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-light-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                </button>
+            </li>
+        </ul>
+    </div>
+</footer>
 
 {% endblock %}
