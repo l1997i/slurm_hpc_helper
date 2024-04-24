@@ -2,6 +2,7 @@ from flask import request, Flask, Blueprint, flash, g, redirect, render_template
 from flask_login import login_user, logout_user
 from numpy import half
 from werkzeug.security import check_password_hash, generate_password_hash
+from src import resource_path
 import os
 from . import login_manager
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -9,7 +10,7 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     salt = '123456uwu654321'
-    with open(f'{os.path.dirname(__file__)}/password.txt', 'r') as f:
+    with open(f'{os.getcwd()}/password.txt', 'r') as f:
         h = f.read()
     if request.method == 'POST':
         password = request.form['password']

@@ -28,6 +28,23 @@ def run_script(script_path, title, output_file=None):
     return process.pid
 
 
+def run_script_with_out(script_path, title, output_file):
+    stage_id = title.split('_')[-1]
+    # Note: This changes the title of the Python script itself, not the subprocess
+    setproctitle(title)
+
+    command = ['bash', '-c', f'exec -a "{title}" bash {script_path}']
+    if output_file:
+        with open(output_file, 'w') as file:
+            process = subprocess.Popen(command, stdout=file, stderr=subprocess.STDOUT)
+    else:
+        process = subprocess.Popen(command)
+
+    print("[Stage {}] Started process PID: {}".format(stage_id, process.pid))
+    return process.pid
+
+
+
 def pid2json(pid, stage_id):
     current_path = os.getcwd()
     hpc_gui_path = os.environ.get('HPC_GUI_PATH')
@@ -60,6 +77,6 @@ if __name__ == "__main__":
     title = sys.argv[2]
     if len(sys.argv) == 4:
         output_file = sys.argv[3]
-        run_script(script_path, title, output_file)
+        run_script_with_out(script_path, title, output_file)
     else:
         run_script(script_path, title)
