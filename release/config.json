@@ -1,0 +1,7 @@
+{
+    "defaults":{
+        "home_folder": "/home2/mznv82",
+        "name":"train"
+    },
+    "port":15001
+}
