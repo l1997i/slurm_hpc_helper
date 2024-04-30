@@ -225,30 +225,6 @@ class SlurmManager():
         if os.path.exists(os.path.join(HPC_GUI_PATH, 'data/jobs.json')):
             with open(os.path.join(HPC_GUI_PATH, 'data/jobs.json'), 'r') as f:
                 self.jobs = json.load(f)
-            # command = 'squeue -u mznv82 -o "%.18i %.9P %.8j %.8u %.2t %.10M %.6D %R"'
-            # result = cli(command)
-
-            # lines = result.strip().split('\n')
-            # jobs_data = []
-            # for line in lines:
-            #     fields = line.split()
-            #     if len(fields) == 8:
-            #         job_dict = {
-            #             "id": fields[0],
-            #             "partition": fields[1],
-            #             "name": fields[2],
-            #             "user": fields[3],
-            #             "state": fields[4],
-            #             "time": fields[5],
-            #             "nodes": fields[6],
-            #             "nodelist": fields[7]
-            #         }
-
-            #         if job_dict["id"] != "JOBID":
-            #             jobs_data.append(job_dict)
-
-            # jobs_data = {d['id']: d for d in jobs_data}
-            # self.jobs = jobs_data
 
         else:
             self.jobs = {}
@@ -260,33 +236,45 @@ class SlurmManager():
             self.Update()
             time.sleep(2)
 
+    def update_job_outputs(self):
+        for id in list(outputs.keys()):  # Use a list to avoid RuntimeError
+            if self.jobs[id]['state'] in ['R', 'PD']:
+                self.update_output(id)
+
+    def update_job_states(self):
+        sacct_output = cli('squeue -u $(whoami)')
+        for id in list(self.jobs.keys()):
+            is_id_in_line = False
+            for line in sacct_output.split("\n"):
+                if id in line:
+                    self.update_job_details(line, id)
+                    is_id_in_line = True
+                    break
+            if not is_id_in_line:
+                self.jobs[id]['state'] = 'CP'  # Consider marking as COMPLETED
+            self.update_output(id)  # Update output after state check
+
+    def update_job_details(self, line, id):
+        columns = line.split()
+        self.jobs[id]['node'] = columns[-1]
+        self.jobs[id]['state'] = columns[4]
+        if self.jobs[id]['node']:
+            self.fetch_process_ids(id)
+
+    def fetch_process_ids(self, id):
+        node = self.jobs[id]['node']
+        pid_1 = cli(f"ssh {node} \"pgrep -f '^{id}_1'\"")
+        pid_2 = cli(f"ssh {node} \"pgrep -f '^{id}_2'\"")
+        self.jobs[id]['pid_1'] = pid_1
+        self.jobs[id]['pid_2'] = pid_2
+
     def Update(self):
         sinfo = cli('sinfo')
-        sacct_all = cli('sacct')
         sacct = cli('squeue -u $(whoami)')
+        # sacct_all = cli('sacct')
+        self.update_job_outputs()
+        self.update_job_states()
 
-        for id in outputs.keys():
-            if self.jobs[id]['state'] == 'R' or self.jobs[id]['state'] == 'PD':
-                self.UpdateOutput(id)
-
-        for id in self.jobs.keys():
-            if self.jobs[id]['state'] == 'R' or self.jobs[id]['state'] == 'PD':
-
-                is_id_in_line = 0  # NOT in Lines
-                for line in sacct.split("\n"):
-                    if id in line:
-                        columns = line.split()
-                        self.jobs[id]['node'] = columns[-1]
-                        self.jobs[id]['state'] = columns[4]
-                        if self.jobs[id]['node']:
-                            pid_1 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f '^{id}_1'\"")
-                            pid_2 = cli(f"ssh {self.jobs[id]['node']} \"pgrep -f '^{id}_2'\"")
-                            self.jobs[id]['pid_1'] = pid_1
-                            self.jobs[id]['pid_2'] = pid_2
-                        is_id_in_line = 1
-                if not is_id_in_line:
-                    self.jobs[id]['state'] = 'CP'  # CP for COMPLETED
-                self.UpdateOutput(id)
 
         self.update_content = {
             'html':  # Update html content

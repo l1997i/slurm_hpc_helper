@@ -27,12 +27,13 @@ sed -i "s|/home2/mznv82|$escaped_user_home|g" config.json
 
 # Set up the local bin directory and copy executables
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+DIR_BIN="$DIR/bin"
 mkdir -p ~/.local/bin
 cp -r bin/* ~/.local/bin
 chmod +x hpc_helper
-chmod +x ~/.local/bin/code
-chmod +x ~/.local/bin/server
-echo "export PATH=\"$DIR:\$PATH\"" >> ~/.bashrc
+chmod +x ~/.local/bin/shh_code
+chmod +x ~/.local/bin/shh_server
+echo "export PATH=\"$DIR_BIN:$DIR:\$PATH\"" >> ~/.bashrc
 
 # Install stage 2 PyTorch environment
 mkdir -p .pytorch
