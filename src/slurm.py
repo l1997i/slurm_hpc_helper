@@ -183,8 +183,8 @@ def update():
         manager.UpdateOutput(session['selected_job_id'])
         if session['selected_job_id'] in outputs and session['selected_job_id'] in scripts:
             emit('update', {'html': {
-                'output': myEscape(outputs[session['selected_job_id']]),
-                'job_script': myEscape(scripts[session['selected_job_id']])
+                'output': "<pre><code class='language-html'>" + myEscape(outputs[session['selected_job_id']]) + "</code></pre>",
+                'job_script': "<pre><code class='shell'>" + myEscape(scripts[session['selected_job_id']]) + "</code></pre>",
             }}, to='slurm')
 
 
@@ -239,7 +239,7 @@ class SlurmManager():
     def update_job_outputs(self):
         for id in list(outputs.keys()):  # Use a list to avoid RuntimeError
             if self.jobs[id]['state'] in ['R', 'PD']:
-                self.update_output(id)
+                self.UpdateOutput(id)
 
     def update_job_states(self):
         sacct_output = cli('squeue -u $(whoami)')
@@ -252,7 +252,7 @@ class SlurmManager():
                     break
             if not is_id_in_line:
                 self.jobs[id]['state'] = 'CP'  # Consider marking as COMPLETED
-            self.update_output(id)  # Update output after state check
+            self.UpdateOutput(id)  # Update output after state check
 
     def update_job_details(self, line, id):
         columns = line.split()
@@ -274,7 +274,6 @@ class SlurmManager():
         # sacct_all = cli('sacct')
         self.update_job_outputs()
         self.update_job_states()
-
 
         self.update_content = {
             'html':  # Update html content
