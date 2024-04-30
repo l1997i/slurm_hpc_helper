@@ -183,8 +183,8 @@ def update():
         manager.UpdateOutput(session['selected_job_id'])
         if session['selected_job_id'] in outputs and session['selected_job_id'] in scripts:
             emit('update', {'html': {
-                'output': "<pre><code class='language-html'>" + myEscape(outputs[session['selected_job_id']]) + "</code></pre>",
-                'job_script': "<pre><code class='shell'>" + myEscape(scripts[session['selected_job_id']]) + "</code></pre>",
+                'output': "<pre><code class='language-accesslog'>" + myEscape(outputs[session['selected_job_id']]) + "</code></pre>",
+                'job_script': "<pre><code class='language-bash'>" + myEscape(scripts[session['selected_job_id']]) + "</code></pre>",
             }}, to='slurm')
 
 
