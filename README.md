@@ -2,6 +2,8 @@
 
 > **_NOTE:_** This is NOT the official helper for any HPC. Use at your own risk.
 
+https://github.com/l1997i/slurm_hpc_helper/assets/35445094/ea87ede9-9539-46f7-b3d2-d9f18ac2dd9f
+
 ## Installation
 
 1. Clone the repo `git clone https://github.com/l1997i/slurm_hpc_helper`. Run `cd slurm_gui`.
